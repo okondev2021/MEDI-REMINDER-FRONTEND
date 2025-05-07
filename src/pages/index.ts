@@ -5,5 +5,5 @@ export { default as Notifications } from "./Notifications";
 export { default as Schedule } from "./Schedule";
 export { default as Settings } from "./Settings";
 export { default as FourZeroFour } from "./FourZeroFour";
-export { default as Login } from "./Login";
+export { default as Login } from "./SignIn";
 export { default as SignUp } from "./SignUp";

@@ -1,4 +1,6 @@
 import { PlusIcon, PillIcon, ClockIcon, CalendarIcon } from 'lucide-react';
+import { AddMedication } from '../components/AddMedication';
+import { useState } from 'react';
 
 const Medications = () => {
 
@@ -27,11 +29,17 @@ const Medications = () => {
         }
     ];
 
+    const [newMedication, setNewMedication] = useState(false)
+
+    if (newMedication) {
+        return <AddMedication />
+    }
+
     return (
         <div className="max-w-5xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-semibold text-gray-800">My Medications</h2>
-                <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                <button onClick={ () => setNewMedication(true)} className="cursor-pointer flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                     <PlusIcon size={20} className="mr-2" />
                     Add New Medication
                 </button>

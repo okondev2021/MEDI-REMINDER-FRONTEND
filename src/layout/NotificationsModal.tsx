@@ -42,12 +42,12 @@ const NotificationsModal = ({ isOpen, onClose } : NotificationsProps) => {
                     <h3 className="text-lg font-medium text-gray-800">Notifications</h3>
                 </div>
                 <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                    <XIcon size={20} />
+                    <XIcon className='cursor-pointer' size={20} />
                 </button>
             </div>
             <div className="divide-y divide-gray-200 max-h-[480px] overflow-y-auto">
                 {notifications.map(notification => (
-                    <div key={notification.id} className="p-4 hover:bg-gray-50">
+                    <div key={notification.id} className="p-4 hover:bg-gray-50 ">
                         <div className="flex items-start">
                             <div className="flex-shrink-0 mt-1">
                                 {notification.type === 'reminder' ? notification.status === 'completed' ?
@@ -74,7 +74,7 @@ const NotificationsModal = ({ isOpen, onClose } : NotificationsProps) => {
                                     {notification.message}
                                 </p>
                                 {notification.status === 'pending' && <div className="mt-2">
-                                    <button className="text-sm text-blue-600 hover:text-blue-500 font-medium">
+                                    <button className="text-sm text-blue-600 hover:text-blue-500 font-medium cursor-pointer">
                                         Mark as Complete
                                     </button>
                                 </div>}
@@ -84,7 +84,7 @@ const NotificationsModal = ({ isOpen, onClose } : NotificationsProps) => {
                 ))}
             </div>
             <div className="p-4 border-t border-gray-200">
-                <button className="text-sm text-blue-600 hover:text-blue-500 font-medium">
+                <button className="text-sm text-blue-600 hover:text-blue-500 font-medium cursor-pointer">
                     View All Notifications
                 </button>
             </div>

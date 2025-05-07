@@ -1,7 +1,11 @@
 import { LayoutDashboardIcon, CalendarIcon, PillIcon, SettingsIcon, HelpCircleIcon, LogOutIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { getAuth, signOut } from "firebase/auth";
 
 const Sidebar = () => {
+
+    
+    const auth = getAuth();
 
     const navItems = [
         {
@@ -48,7 +52,7 @@ const Sidebar = () => {
            
                             {({ isActive }) => (
                                 <button
-                                    className={`flex items-center w-full px-4 py-3 text-left ${isActive
+                                    className={`flex items-center w-full px-4 py-3 text-left cursor-pointer ${isActive
                                             ? 'text-blue-600 bg-blue-50 border-l-4 border-blue-500'
                                             : 'text-gray-600 hover:bg-gray-50'
                                         }`}
@@ -62,7 +66,7 @@ const Sidebar = () => {
                 </ul>
             </nav>
             <div className="p-4 border-t border-gray-200">
-                <button className="flex items-center text-gray-600 px-4 py-2 w-full hover:bg-gray-50 rounded">
+                <button onClick={() => signOut(auth)} className="flex items-center text-gray-600 px-4 py-2 w-full hover:bg-gray-50 rounded">
                     <LogOutIcon size={20} className="mr-3" />
                     <span>Log out</span>
                 </button>
