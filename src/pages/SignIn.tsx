@@ -4,18 +4,15 @@ import AuthText from "../components/AuthText";
 import AuthHeader from "../components/AuthHeader";
 import Loader from "../components/Loader";
 import Reveal from "../components/Reveal";
-import { X } from "lucide-react";
-import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { appAuth } from "../lib/firebase";
+import ErrorContainer from "../components/ErrorContainer";
 
 const SignIn = () => {
 
-
-    // Initialize Firebase authentication and navigation
-    const auth = appAuth;
-
+    // Initialize navigation
     const navigate = useNavigate();
 
     const passwordInput = useRef(null)
@@ -39,22 +36,12 @@ const SignIn = () => {
 
         setAuthLoading(true)
 
-        console.log("running login")
-
         try {
-            console.log("running actual code 1")
-            // Use Firebase to sign in with email and password
-            const userCredential = await signInWithEmailAndPassword(auth, loginInfo.email, loginInfo.password);
-            const user = userCredential.user;
+            await signInWithEmailAndPassword(appAuth, loginInfo.email, loginInfo.password);
 
-            console.log("Logged in as:", user.email);
             navigate('/');
-
-            console.log("running actual code 1")
         }
         catch (error) {
-
-            console.log("error occured");
             
             const message = error instanceof FirebaseError ? error.message : "An unexpected error occurred";
 
@@ -74,16 +61,6 @@ const SignIn = () => {
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [])
-
-
-    const ErrorContainer = () => {
-        return (
-            <div className="flex justify-between items-center bg-red-200 w-[80%]  px-2 py-4 rounded-lg tab:w-full">
-                <p>{errorMessage}</p>
-                <X onClick={() => setErrorMessage("")} className="h-[20px] cursor-pointer aspect-square" />
-            </div>
-        )
-    }
     
 
     return (
@@ -92,7 +69,7 @@ const SignIn = () => {
             <div className="className= w-[50%] mobile:w-full p-[3em] tab:p-[2em]">
                 <AuthHeader headingText="Sign in" paragraphText="Welcome back, kindly enter your login details" />
                 <form className="authForm" onSubmit={userLogin} method="post">
-                    {errorMessage && <ErrorContainer />}
+                    {errorMessage && <ErrorContainer errorMessage={errorMessage} setErrorMessage={setErrorMessage} />}
                     <div className="inputContainer">
                         <label className="authLabel" htmlFor="email">Email Address:</label>
                         <input className="authInput" onChange={handleChange} name="email" id="email" type="email" required value={loginInfo.email} />

@@ -1,7 +1,9 @@
 import { Routes, Route } from "react-router-dom";
+import AuthContextProvider from "./context/AuthContextProvider";
+import AuthWrapper from "./Wrapper/AuthWrapper";
 import MainLayout from "./layout/MainLayout";
 import { Dashboard, HelpPage, Medications, Notifications, Schedule, Settings, FourZeroFour, Login, SignUp } from "./pages";
-import AuthWrapper from "./Wrapper/AuthWrapper";
+import { ToastContainer } from "react-toastify";
 
 function App() {
 
@@ -9,9 +11,11 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={
-          <AuthWrapper>
-            <MainLayout />
-          </AuthWrapper>
+          <AuthContextProvider>
+            <AuthWrapper>
+              <MainLayout />
+            </AuthWrapper>
+          </AuthContextProvider>
         }>
           <Route index element={<Dashboard />} />
           <Route path="/help" element={<HelpPage />} />
@@ -26,6 +30,7 @@ function App() {
         {/* 404 */}
         <Route path="*" element={<FourZeroFour />} />
       </Routes>
+      <ToastContainer />
     </>
   )
 }

@@ -11,7 +11,7 @@ const MainLayout = () => {
     return (
         <div className="flex w-full min-h-screen bg-gray-50">
             <Sidebar />
-            <div className="ml-56 flex flex-col flex-1">
+            <div className="ml-[20%] flex flex-col flex-1">
                 <div className="relative">
                     <Header onNotificationClick={() => setShowNotifications(!showNotifications)} />
                     {showNotifications && (
@@ -20,7 +20,7 @@ const MainLayout = () => {
                         </div>
                     )}
                 </div>
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-6 mt-20">
                     <Outlet />
                 </main>
             </div>

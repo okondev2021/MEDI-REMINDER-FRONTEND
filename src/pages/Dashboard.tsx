@@ -1,10 +1,13 @@
 import { MedicationHistory, UpcomingMedications } from "../components/Dashboard";
+import { useAuthContext } from '../context/AuthContextProvider';
 
 const Dashboard = () => {
+
+    const { currentUser } = useAuthContext();
     
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-800">Hello, Sarah!</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Hello, {currentUser.name.split(" ")[0]}!</h1>
             <p className="text-gray-600">
                 Here's your medication overview for today.
             </p>

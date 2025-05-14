@@ -1,10 +1,10 @@
 import { PlusIcon, PillIcon, ClockIcon, CalendarIcon } from 'lucide-react';
-import { AddMedication } from '../components/AddMedication';
+import AddMedication  from '../components/AddMedication';
 import { useState } from 'react';
 
 const Medications = () => {
 
-    const medications = [
+    const dummMedications = [
         {
         name: 'Lisinopril',
         strength: '10mg',
@@ -31,8 +31,11 @@ const Medications = () => {
 
     const [newMedication, setNewMedication] = useState(false)
 
+    const [medications, setMedications] = useState(dummMedications)
+
+    
     if (newMedication) {
-        return <AddMedication />
+        return <AddMedication setNewMedication={setNewMedication} />
     }
 
     return (

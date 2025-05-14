@@ -4,20 +4,22 @@ import AuthText from "../components/AuthText";
 import AuthHeader from "../components/AuthHeader";
 import Loader from "../components/Loader";
 import Reveal from "../components/Reveal";
-import { X } from "lucide-react"
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { FirebaseError } from 'firebase/app';
-import { appDb, appAuth } from "../lib/firebase";
+import { appAuth, appDb } from "../lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { Timestamp } from 'firebase/firestore';
+import ErrorContainer from "../components/ErrorContainer";
+
 
 const SignUp = () => {
 
     //  navigation
-    const auth = appAuth
     const navigate = useNavigate();
     
     const passwordInput1 = useRef<HTMLInputElement>(null)
+
     const passwordInput2 = useRef<HTMLInputElement>(null)
 
     const [signUpInfo, setSignUpInfo] = useState({
@@ -29,13 +31,13 @@ const SignUp = () => {
 
     const [errorMessage, setErrorMessage] = useState("")
 
+    const [authLoading, setAuthLoading] = useState(false)
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSignUpInfo({ ...signUpInfo, [e.target.name]: e.target.value })
     }
 
-    const [authLoading, setAuthLoading] = useState(false)
-
-
+    
     const userRegistration = async (e: React.FormEvent<HTMLFormElement>) => {
 
         e.preventDefault();
@@ -49,13 +51,22 @@ const SignUp = () => {
                 return;
             }
 
-            // Use Firebase to create a new user with email and password
-            const userCredentials = await createUserWithEmailAndPassword(auth, signUpInfo.email, signUpInfo.password);
+            const userCredentials = await createUserWithEmailAndPassword(appAuth, signUpInfo.email, signUpInfo.password);
+
             const user = userCredentials.user
 
-            console.log(user)
-            // add the user full_name
-            
+            if (user) {
+                await updateProfile(user, {
+                    displayName: signUpInfo.full_name,
+                });
+
+                await setDoc(doc(appDb, "userProfile", user.uid), {
+                    userType: "patient",
+                    birthDate: "2000-01-01",
+                    dateJoined: Timestamp.now(),
+                    healthConditions: ["cough", "polio"]
+                });
+            }
 
             navigate('/');
 
@@ -77,15 +88,6 @@ const SignUp = () => {
         }
     }
 
-    const ErrorContainer = () => {
-        return (
-            <div className="flex justify-between items-center bg-red-200 w-[80%]  px-2 py-4 rounded-lg tab:w-full">
-                <p>{errorMessage}</p>
-                <X onClick={() => setErrorMessage("")} className="h-[20px] cursor-pointer aspect-square"/>
-            </div>
-        )
-    }
-
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [])
@@ -97,7 +99,7 @@ const SignUp = () => {
             <div className="className= w-[50%] mobile:w-full p-[3em] tab:p-[2em]">
                 <AuthHeader headingText="Create an account" paragraphText="Let's get started." />
                 <form className="authForm" onSubmit={userRegistration}>
-                    {errorMessage && <ErrorContainer />}
+                    {errorMessage && <ErrorContainer errorMessage={errorMessage} setErrorMessage={setErrorMessage} />}
                     <div className="inputContainer">
                         <label className="authLabel" htmlFor="fullName">Full Name:</label>
                         <input className="authInput" onChange={handleChange} id="fullName" type="text" name="full_name" required />

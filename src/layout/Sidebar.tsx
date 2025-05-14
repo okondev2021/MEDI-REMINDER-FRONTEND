@@ -36,7 +36,7 @@ const Sidebar = () => {
         }
     ];
     return (
-        <div className="w-56 h-screen max-h-screen fixed bg-white border-r border-gray-200 flex flex-col">
+        <div className="w-[20%] h-screen max-h-screen fixed z-[100] bg-white border-r border-gray-200 flex flex-col">
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center">
                     <div className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center mr-2">
@@ -66,7 +66,7 @@ const Sidebar = () => {
                 </ul>
             </nav>
             <div className="p-4 border-t border-gray-200">
-                <button onClick={() => signOut(auth)} className="flex items-center text-gray-600 px-4 py-2 w-full hover:bg-gray-50 rounded">
+                <button onClick={() => signOut(auth)} className="cursor-pointer flex items-center text-gray-600 px-4 py-2 w-full hover:bg-gray-50 rounded">
                     <LogOutIcon size={20} className="mr-3" />
                     <span>Log out</span>
                 </button>

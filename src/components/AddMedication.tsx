@@ -1,8 +1,53 @@
-import { useState } from 'react';
+import React, { SetStateAction, useState, useMemo } from 'react';
 import { PlusIcon, XIcon, ChevronDownIcon, InfoIcon, AlarmClockIcon, CalendarIcon } from 'lucide-react';
-export function AddMedication() {
+import { collection } from 'firebase/firestore';
+import { appDb } from '../lib/firebase';
+import { useAuthContext } from '../context/AuthContextProvider';
+import { addDoc } from 'firebase/firestore';
+import { FirebaseError } from 'firebase/app';
+import Loader from './Loader';
+import { toast } from 'react-toastify';
+import ErrorContainer from './ErrorContainer';
+import { GenerateMonthlyDosesParams } from '../lib/types';
+import { generateMonthlyDoses } from '../lib/monthlyDosesGeneration';
+import { writeBatch, doc } from "firebase/firestore";
+
+const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<SetStateAction<boolean>> }) => {
+
+    const { currentUser } = useAuthContext();
+
+    // Memoize the collection reference avoid unecessary interaction with db on every render
+    const medicationCollectionRef = useMemo(() => collection(appDb, "userProfile", currentUser.uid, "medications"), [appDb]);
+
+    // const doseCollectionRef = useMemo( () => collection(appDb, "userProfile", ))
+
+    const [errorMessage, setErrorMessage] = useState("")
+
+    const [loading, setLoading] = useState(false)
+
+    // form state
+
+    // medication information
+
+    const [medicationName, setMedicationName] = useState("");
+
+    const [medicationStrength, setMedicationStrength] = useState("");
+
+    const [medicationStrengthUnit, setMedicationStrengthUnit] = useState("");
+
+    const [medicationInstruction, setMedicationInstruction] = useState("");
+
+    const [startDate, setStartDate] = useState("")
+
+    // construction
+
+
+    // schedule states
+
     const [frequency, setFrequency] = useState('daily');
+
     const [showFrequencyOptions, setShowFrequencyOptions] = useState(false);
+
     const [days, setDays] = useState({
         monday: true,
         tuesday: true,
@@ -12,25 +57,32 @@ export function AddMedication() {
         saturday: true,
         sunday: true
     });
+
     const [times, setTimes] = useState([{
         time: '08:00',
         period: 'AM'
     }]);
+
+
+    // select day of the week
     const handleDayToggle = (day: string) => {
         setDays(prev => ({
             ...prev,
             [day]: !prev[day as keyof typeof prev]
         }));
     };
+
     const addTime = () => {
         setTimes([...times, {
             time: '08:00',
             period: 'AM'
         }]);
     };
+
     const removeTime = (index: number) => {
         setTimes(times.filter((_, i) => i !== index));
     };
+
     const updateTime = (index: number, field: string, value: string) => {
         const newTimes = [...times];
         newTimes[index] = {
@@ -39,6 +91,85 @@ export function AddMedication() {
         };
         setTimes(newTimes);
     };
+
+
+    const submitMedication = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const arrayDays = Object.keys(days).filter((day) => days[day as keyof typeof days])
+        const arrayTimeSlot = times.map((time) => time.time)
+
+        try {
+            const medicationResponse = await addDoc(medicationCollectionRef, {
+                medicationInformation: {
+                    name: medicationName,
+                    instructions: medicationInstruction,
+                    medicationStrength: medicationStrength + " " + medicationStrengthUnit,
+                    startDate: startDate,
+                },
+                schedule: {
+                    type: frequency,
+                    days: arrayDays,
+                    timeSlots: arrayTimeSlot
+                },
+                status: true
+            });
+
+            const medicationId = medicationResponse?.id
+
+            if (medicationId) {
+
+                const dataForDose: GenerateMonthlyDosesParams = {
+                    startDate: startDate,
+                    selectedDays:arrayDays,
+                    timeSlots: arrayTimeSlot,
+                    medicationInfo: {
+                        id: medicationId,
+                        name: medicationName,
+                    },
+                    userId: currentUser.uid,
+                };
+
+                const generatedDoses = generateMonthlyDoses(dataForDose)
+
+                const batch = writeBatch(appDb);
+
+                const dosesCollectionRef = collection(appDb, "userProfile", currentUser.uid, "medications", medicationId, "doses")
+
+                generatedDoses.forEach((dose) => {
+                    const doseDocRef = doc(dosesCollectionRef)
+                    batch.set(doseDocRef, dose);
+                });
+                        
+
+                await batch.commit(); // Commit the batch, which applies all writes atomically
+            
+            }
+
+            // unmount component
+            setNewMedication(false);
+
+            toast.success("Medication added successfully!")
+        }
+        catch (error) {
+
+            const message = error instanceof FirebaseError ? error.message : "An unexpected error occurred";
+
+            setErrorMessage(message);
+
+            setTimeout(() => {
+                setErrorMessage("")
+            }, 4000)
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+
+
+
+
     return (
         <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="border-b border-gray-200 p-6">
@@ -47,7 +178,8 @@ export function AddMedication() {
                     Fill out the details to add a new medication to your schedule.
                 </p>
             </div>
-            <form className="p-6">
+            {errorMessage && <ErrorContainer errorMessage={errorMessage} setErrorMessage={setErrorMessage} />}
+            <form onSubmit={submitMedication} method='post' className="p-6">
                 <div className="space-y-6">
                     {/* Medication Information */}
                     <div className="space-y-4">
@@ -59,15 +191,15 @@ export function AddMedication() {
                                 <label htmlFor="medication-name" className="block text-sm font-medium text-gray-700 mb-1">
                                     Medication Name*
                                 </label>
-                                <input type="text" id="medication-name" placeholder="e.g., Lisinopril" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <input onChange={(e) => setMedicationName(e.target.value)} type="text" id="medication-name" placeholder="e.g., Lisinopril" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
                             </div>
                             <div>
                                 <label htmlFor="strength" className="block text-sm font-medium text-gray-700 mb-1">
                                     Strength*
                                 </label>
                                 <div className="flex">
-                                    <input type="text" id="strength" placeholder="e.g., 10" className="w-2/3 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-                                    <select className="w-1/3 border-l-0 border border-gray-300 rounded-r-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input onChange={(e) => setMedicationStrength(e.target.value)} type="text" id="strength" placeholder="e.g., 10" className="w-2/3 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                    <select onChange={ (e) => setMedicationStrengthUnit(e.target.value)} className="w-1/3 border-l-0 border border-gray-300 rounded-r-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="mg">mg</option>
                                         <option value="mcg">mcg</option>
                                         <option value="g">g</option>
@@ -81,7 +213,7 @@ export function AddMedication() {
                             <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-1">
                                 Instructions
                             </label>
-                            <input type="text" id="instructions" placeholder="e.g., Take with food" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input onChange={ (e) => setMedicationInstruction(e.target.value)} type="text" id="instructions" placeholder="e.g., Take with food" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                     </div>
                     {/* Schedule */}
@@ -97,7 +229,7 @@ export function AddMedication() {
                                     <ChevronDownIcon size={16} />
                                 </button>
                                 {showFrequencyOptions && <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
-                                    {['daily', 'weekly', 'monthly', 'as needed'].map(option => <button key={option} type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100 capitalize" onClick={() => {
+                                    {['daily', 'weekly'].map(option => <button key={option} type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100 capitalize" onClick={() => {
                                         setFrequency(option);
                                         setShowFrequencyOptions(false);
                                     }}>
@@ -150,19 +282,13 @@ export function AddMedication() {
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <CalendarIcon size={16} className="text-gray-400" />
                                 </div>
-                                <input type="date" id="start-date" className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <input onChange={ (e) => setStartDate(e.target.value)} type="date" id="start-date" className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
                             </div>
                         </div>
                     </div>
                     {/* Reminders */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-medium text-gray-800">Reminders</h3>
-                        <div className="flex items-center">
-                            <input type="checkbox" id="enable-reminders" className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                            <label htmlFor="enable-reminders" className="ml-2 block text-sm text-gray-700">
-                                Enable reminders for this medication
-                            </label>
-                        </div>
                         <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex">
                             <InfoIcon size={20} className="text-blue-500 mr-3 flex-shrink-0 mt-0.5" />
                             <p className="text-sm text-blue-700">
@@ -173,14 +299,17 @@ export function AddMedication() {
                     </div>
                 </div>
                 <div className="mt-8 flex justify-end space-x-3">
-                    <button type="button" className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <button onClick={() => setNewMedication(false)} type="button" className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         Cancel
                     </button>
-                    <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Add Medication
+                    <button type="submit" className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        {loading ? <Loader /> : "Add Medication"}
                     </button>
                 </div>
             </form>
         </div>
     );
 }
+
+
+export default AddMedication;
