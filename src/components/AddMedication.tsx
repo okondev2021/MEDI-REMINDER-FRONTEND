@@ -1,6 +1,6 @@
-import React, { SetStateAction, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PlusIcon, XIcon, ChevronDownIcon, InfoIcon, AlarmClockIcon, CalendarIcon } from 'lucide-react';
-import { collection } from 'firebase/firestore';
+import { collection, writeBatch, doc } from 'firebase/firestore';
 import { appDb } from '../lib/firebase';
 import { useAuthContext } from '../context/AuthContextProvider';
 import { addDoc } from 'firebase/firestore';
@@ -9,23 +9,20 @@ import Loader from './Loader';
 import { toast } from 'react-toastify';
 import ErrorContainer from './ErrorContainer';
 import { GenerateMonthlyDosesParams } from '../lib/types';
-import { generateMonthlyDoses } from '../lib/monthlyDosesGeneration';
-import { writeBatch, doc } from "firebase/firestore";
+import { generateMonthlyDoses } from '../lib/mediRemindUtils';
 
-const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<SetStateAction<boolean>> }) => {
+const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<React.SetStateAction<boolean>> }) => {
 
     const { currentUser } = useAuthContext();
 
     // Memoize the collection reference avoid unecessary interaction with db on every render
     const medicationCollectionRef = useMemo(() => collection(appDb, "userProfile", currentUser.uid, "medications"), [appDb]);
 
-    // const doseCollectionRef = useMemo( () => collection(appDb, "userProfile", ))
-
     const [errorMessage, setErrorMessage] = useState("")
 
     const [loading, setLoading] = useState(false)
 
-    // form state
+    // FORM STATE
 
     // medication information
 
@@ -38,9 +35,6 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
     const [medicationInstruction, setMedicationInstruction] = useState("");
 
     const [startDate, setStartDate] = useState("")
-
-    // construction
-
 
     // schedule states
 
@@ -85,10 +79,27 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
 
     const updateTime = (index: number, field: string, value: string) => {
         const newTimes = [...times];
-        newTimes[index] = {
-            ...newTimes[index],
-            [field]: value
-        };
+        const hour = parseInt(value.slice(0, 2))
+        const minutes = parseInt(value.slice(3))
+
+        newTimes[index] = field === 'time' && (hour >= 12 && minutes >= 0) ?
+
+            {
+                time: value.toString(),
+                period: 'PM'
+            }
+            :
+            field === 'time' && (hour < 12) ?
+                {
+                    time: value.toString(),
+                    period: 'AM'
+                }
+                :
+                {
+                    ...newTimes[index],
+                    [field]: value
+                }
+
         setTimes(newTimes);
     };
 
@@ -122,11 +133,13 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
 
                 const dataForDose: GenerateMonthlyDosesParams = {
                     startDate: startDate,
-                    selectedDays:arrayDays,
+                    selectedDays: arrayDays,
                     timeSlots: arrayTimeSlot,
                     medicationInfo: {
                         id: medicationId,
                         name: medicationName,
+                        strength: medicationStrength + " " + medicationStrengthUnit,
+                        instruction: medicationInstruction
                     },
                     userId: currentUser.uid,
                 };
@@ -141,10 +154,10 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                     const doseDocRef = doc(dosesCollectionRef)
                     batch.set(doseDocRef, dose);
                 });
-                        
+
 
                 await batch.commit(); // Commit the batch, which applies all writes atomically
-            
+
             }
 
             // unmount component
@@ -166,8 +179,6 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
             setLoading(false);
         }
     }
-
-
 
 
     return (
@@ -199,7 +210,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                 </label>
                                 <div className="flex">
                                     <input onChange={(e) => setMedicationStrength(e.target.value)} type="text" id="strength" placeholder="e.g., 10" className="w-2/3 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-                                    <select onChange={ (e) => setMedicationStrengthUnit(e.target.value)} className="w-1/3 border-l-0 border border-gray-300 rounded-r-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <select onChange={(e) => setMedicationStrengthUnit(e.target.value)} className="w-1/3 border-l-0 border border-gray-300 rounded-r-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="mg">mg</option>
                                         <option value="mcg">mcg</option>
                                         <option value="g">g</option>
@@ -213,7 +224,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                             <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-1">
                                 Instructions
                             </label>
-                            <input onChange={ (e) => setMedicationInstruction(e.target.value)} type="text" id="instructions" placeholder="e.g., Take with food" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input onChange={(e) => setMedicationInstruction(e.target.value)} type="text" id="instructions" placeholder="e.g., Take with food" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                     </div>
                     {/* Schedule */}
@@ -229,7 +240,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                     <ChevronDownIcon size={16} />
                                 </button>
                                 {showFrequencyOptions && <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
-                                    {['daily', 'weekly'].map(option => <button key={option} type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100 capitalize" onClick={() => {
+                                    {['daily', 'custom'].map(option => <button key={option} type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100 capitalize" onClick={() => {
                                         setFrequency(option);
                                         setShowFrequencyOptions(false);
                                     }}>
@@ -238,7 +249,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                 </div>}
                             </div>
                         </div>
-                        {frequency === 'weekly' && <div>
+                        {frequency === 'custom' && <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Days of Week
                             </label>
@@ -282,7 +293,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <CalendarIcon size={16} className="text-gray-400" />
                                 </div>
-                                <input onChange={ (e) => setStartDate(e.target.value)} type="date" id="start-date" className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <input onChange={(e) => setStartDate(e.target.value)} type="date" id="start-date" className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
                             </div>
                         </div>
                     </div>

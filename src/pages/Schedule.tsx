@@ -1,55 +1,58 @@
-import { useState } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, EditIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { EditIcon } from 'lucide-react';
+import { Calendar } from "@/components/ui/calendar"
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { formatDate } from '@/lib/mediRemindUtils';
+import { appDb } from '@/lib/firebase';
+import { useAuthContext } from '@/context/AuthContextProvider';
+import {
+    collectionGroup,
+    query,
+    where,
+    getDocs
+} from 'firebase/firestore';
+import { DosesScheduleProps } from '@/lib/types';
+import { groupDailyDosesByTime } from '@/lib/mediRemindUtils';
+import { GroupedDailyDosesProps } from '@/lib/types';
+
 
 
 const Schedule = () => {
 
-    const [currentMonth, setCurrentMonth] = useState('March 2024');
+    const [date, setDate] = useState<Date | undefined>(new Date())
 
-    const [selectedDate, setSelectedDate] = useState('March 15, 2024');
+    const { currentUser } = useAuthContext();
 
-    const dailySchedule = [
-        {
-            time: '08:00 AM',
-            medications: [
-                {
-                    name: 'Lisinopril',
-                    dosage: '10mg',
-                    instructions: 'Take with water'
-                },
-                {
-                    name: 'Metformin',
-                    dosage: '500mg',
-                    instructions: 'Take with breakfast'
-                }
-            ]
-        },
-        {
-            time: '02:00 PM',
-            medications: [
-                {
-                    name: 'Vitamin D',
-                    dosage: '1000 IU',
-                    instructions: 'Take with food'
-                }
-            ]
-        },
-        {
-            time: '08:00 PM',
-            medications: [
-                {
-                    name: 'Atorvastatin',
-                    dosage: '20mg',
-                    instructions: 'Take with evening meal'
-                }
-            ]
-        }
-    ];
-    const daysInMonth = Array.from({
-        length: 31
-    }, (_, i) => i + 1);
-    
-    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const [dailySchedule, setDailySchedule] = useState<GroupedDailyDosesProps[]>()
+
+    const getDailyScheduledDoses = async () => {
+
+        console.log(currentUser.uid)
+        console.log(formatDate(date ?? new Date()))
+
+        const q = query(
+            collectionGroup(appDb, 'doses'),
+            where('userId', '==', currentUser.uid),
+            where('date', '==', formatDate(date ?? new Date()))
+        );
+
+        const doses = await getDocs(q);
+
+        const dosesList = doses.docs.map(dose => (
+            {
+                ...(dose.data() as DosesScheduleProps),
+                id: dose.id,
+            }
+        ));
+
+        setDailySchedule(groupDailyDosesByTime(dosesList))
+    }
+
+    useEffect(() => {
+        getDailyScheduledDoses();
+    }, [date])
+
 
     return (
         <div className="max-w-6xl mx-auto">
@@ -57,45 +60,38 @@ const Schedule = () => {
                 <h2 className="text-2xl font-semibold text-gray-800">Schedule</h2>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-medium text-gray-800">
-                            {currentMonth}
-                        </h3>
-                        <div className="flex items-center space-x-2">
-                            <button className="p-1 rounded hover:bg-gray-100">
-                                <ChevronLeftIcon size={20} />
-                            </button>
-                            <button className="p-1 rounded hover:bg-gray-100">
-                                <ChevronRightIcon size={20} />
-                            </button>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-7 gap-2">
-                        {weekDays.map(day => (
-                            <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
-                                {day}
-                            </div>
-                        ))}
-                        {daysInMonth.map(day => (
-                            <button key={day} className={`aspect-square flex items-center justify-center rounded-full text-sm 
-                                ${day === 15 ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}
-                                ${[5, 10, 15, 20, 25].includes(day) ? 'after:content-["•"] after:absolute after:bottom-1 after:text-blue-600' : ''}`}
-                            >
-                                {day}
-                            </button>
-                        ))}
-                    </div>
+                <div>
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        className="rounded-md border w-full"
+                        classNames={{
+                            months: ' cursor-pointer flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1',
+                            month: ' cursor-pointer space-y-4 w-full flex flex-col',
+                            table: 'w-full h-full border-collapse space-y-1',
+                            head_cell: 'cursor-pointer text-muted-foreground rounded-md w-8 font-normal text-[0.8rem] w-full',
+                            cell: cn(
+                                ' cursor-pointer [&:has([aria-selected])]:bg-accent relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected].day-range-end)]:rounded-r-md',
+                                '[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md',
+                                'w-full',
+                            ),
+                            day: cn(
+                                buttonVariants({ variant: 'ghost' }),
+                                'cursor-pointer size-8 w-full p-0 font-normal aria-selected:opacity-100',
+                            ),
+                        }}
+                    />
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div className="p-6 border-b border-gray-200">
                         <h3 className="text-lg font-medium text-gray-800">
                             Daily Schedule
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">{selectedDate}</p>
+                        <p className="text-sm text-gray-500 mt-1">{date?.getDate()}</p>
                     </div>
                     <div className="divide-y divide-gray-200">
-                        {dailySchedule.map((schedule, index) => (
+                        {dailySchedule?.map((schedule, index) => (
                             <div key={index} className="p-4">
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="font-medium text-gray-900">
@@ -107,16 +103,16 @@ const Schedule = () => {
                                         <div key={medIndex} className="flex items-start justify-between bg-gray-50 p-3 rounded-lg">
                                             <div>
                                                 <div className="font-medium text-gray-900">
-                                                    {med.name}
+                                                    {med.medicationName}
                                                     <span className="ml-2 text-sm text-gray-500">
-                                                        {med.dosage}
+                                                        {med.medicationStrength}
                                                     </span>
                                                 </div>
                                                 <p className="text-sm text-gray-600 mt-1">
-                                                    {med.instructions}
+                                                    {med.medicationInstruction}
                                                 </p>
                                             </div>
-                                            <button onClick={() => {}} className="p-1 text-gray-400 hover:text-gray-600">
+                                            <button onClick={() => { }} className="p-1 text-gray-400 hover:text-gray-600">
                                                 <EditIcon size={16} />
                                             </button>
                                         </div>
