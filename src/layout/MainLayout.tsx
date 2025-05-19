@@ -8,14 +8,18 @@ const MainLayout = () => {
 
     const [showNotifications, setShowNotifications] = useState(false);
 
+    const [showSideNav, setShowSideNav] = useState(window.innerWidth > 640 ? true : false)
+
     return (
         <div className="flex w-full min-h-screen bg-gray-50">
-            <Sidebar />
-            <div className="ml-[20%] flex flex-col flex-1">
+            <Sidebar setShowSideNav={setShowSideNav} showSideNav={showSideNav} />
+            <div className="flex flex-col flex-1 md:ml-[20%]">
+                {showSideNav && <div className='absolute z-[60] top-0 left-0 bg-black/50 w-full h-full md:hidden'></div>}
                 <div className="relative">
-                    <Header onNotificationClick={() => setShowNotifications(!showNotifications)} />
+                    <Header setShowSideNav={setShowSideNav} showSideNav={showSideNav} onNotificationClick={() => setShowNotifications(!showNotifications)} />
                     {showNotifications && (
-                        <div className="absolute right-4 top-16">
+                        <div className="absolute z-[100] right-0 w-[100%] mx-auto top-16 md:right-4">
+                        
                             <NotificationsModal isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
                         </div>
                     )}

@@ -37,9 +37,9 @@ const Medications = () => {
             <AddMedication setNewMedication={setNewMedication} />
             :
             <div className="max-w-5xl mx-auto">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col gap-y-2 justify-between mb-6 md:flex-row md:items-center">
                     <h2 className="text-2xl font-semibold text-gray-800">My Medications</h2>
-                    <button onClick={ () => setNewMedication(true)} className="cursor-pointer flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    <button onClick={ () => setNewMedication(true)} className="cursor-pointer self-start inline-flex w-auto items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                         <PlusIcon size={20} className="mr-2" />
                         Add New Medication
                     </button>

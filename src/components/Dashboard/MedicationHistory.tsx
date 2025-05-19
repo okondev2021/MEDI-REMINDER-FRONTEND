@@ -46,9 +46,10 @@ const MedicationHistory = () => {
                 status: 'missed'
             }]
         }];
+    
     return (
         <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex gap-y-2 flex-col justify-between mb-6 md:flex-row md:items-center">
                 <h2 className="text-xl font-semibold text-gray-800">
                     Medication History
                 </h2>

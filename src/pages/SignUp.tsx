@@ -88,15 +88,10 @@ const SignUp = () => {
         }
     }
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [])
-
-
     return (
         <section className="flex min-h-full">
             <AuthText />
-            <div className="className= w-[50%] mobile:w-full p-[3em] tab:p-[2em]">
+            <div className="w-full p-[1em] md:p-[3em] md:w-[50%]">
                 <AuthHeader headingText="Create an account" paragraphText="Let's get started." />
                 <form className="authForm" onSubmit={userRegistration}>
                     {errorMessage && <ErrorContainer errorMessage={errorMessage} setErrorMessage={setErrorMessage} />}

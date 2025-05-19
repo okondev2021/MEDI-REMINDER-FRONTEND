@@ -4,11 +4,13 @@ import AuthWrapper from "./Wrapper/AuthWrapper";
 import MainLayout from "./layout/MainLayout";
 import { Dashboard, HelpPage, Medications, Notifications, Schedule, Settings, FourZeroFour, Login, SignUp } from "./pages";
 import { ToastContainer } from "react-toastify";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={
           <AuthContextProvider>

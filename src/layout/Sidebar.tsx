@@ -1,8 +1,10 @@
+import React, {useRef} from 'react';
 import { LayoutDashboardIcon, CalendarIcon, PillIcon, SettingsIcon, HelpCircleIcon, LogOutIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
+import { useCloseMenuWhenClickedOutside } from '@/hooks/useCloseMenuWhenClickedOutside ';
 
-const Sidebar = () => {
+const Sidebar = ({ showSideNav, setShowSideNav }: { showSideNav: boolean;  setShowSideNav: React.Dispatch<React.SetStateAction<boolean>>;}) => {
 
     
     const auth = getAuth();
@@ -35,38 +37,48 @@ const Sidebar = () => {
             href: "/help"
         }
     ];
+
+    const sideNavRef = useRef<HTMLDivElement | null>(null);
+
+    useCloseMenuWhenClickedOutside({
+        showMenu: showSideNav,
+        showMenuRef: sideNavRef,
+        setShowMenu: setShowSideNav,
+    });
+
+    // useCloseMenuWhenClickedOutside
     return (
-        <div className="w-[20%] h-screen max-h-screen fixed z-[100] bg-white border-r border-gray-200 flex flex-col">
-            <div className="p-4 border-b border-gray-200">
+        <div ref={sideNavRef} className={`overflow-x-hidden h-screen  max-h-screen fixed z-[100] bg-white border-r border-gray-200 flex flex-col md:w-[20%] text-nowrap ${showSideNav ? " w-[70%]" : "w-0"}`}>
+            <div className="p-4 border-b border-gray-200 text-nowrap">
                 <div className="flex items-center">
                     <div className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center mr-2">
                         <PillIcon size={20} color="white" />
                     </div>
-                    <span className="text-xl font-bold text-blue-500">MediRemind</span>
+                    <span className="text-xl font-bold text-blue-500 text-nowrap">MediRemind</span>
                 </div>
             </div>
-            <nav className="flex-1 pt-4">
+            <nav className="flex-1 pt-4 text-nowrap">
                 <ul>
                     {navItems.map(item => (
-                        <NavLink to={item.href} key={item.id}>
+                        <NavLink onClick={ () => setShowSideNav(false)} to={item.href} key={item.id}>
            
                             {({ isActive }) => (
                                 <button
-                                    className={`flex items-center w-full px-4 py-3 text-left cursor-pointer ${isActive
+                                    className={`text-nowrap flex items-center w-full px-4 py-3 text-left cursor-pointer ${isActive
                                             ? 'text-blue-600 bg-blue-50 border-l-4 border-blue-500'
                                             : 'text-gray-600 hover:bg-gray-50'
                                         }`}
                                 >
-                                    <span className="mr-3">{item.icon}</span>
+                                    <span className="mr-3 text-nowrap">{item.icon}</span>
                                     <span>{item.label}</span>
                                 </button>
                             )}
                         </NavLink>
                     ))}
-                </ul>
+                </ul> 
             </nav>
-            <div className="p-4 border-t border-gray-200">
-                <button onClick={() => signOut(auth)} className="cursor-pointer flex items-center text-gray-600 px-4 py-2 w-full hover:bg-gray-50 rounded">
+            <div className="p-4 border-t border-gray-200 text-nowrap">
+                <button onClick={() => signOut(auth)} className="text-nowrap cursor-pointer flex items-center text-gray-600 px-4 py-2 w-full hover:bg-gray-50 rounded">
                     <LogOutIcon size={20} className="mr-3" />
                     <span>Log out</span>
                 </button>
