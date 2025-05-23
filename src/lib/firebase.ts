@@ -1,6 +1,10 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentSingleTabManager,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
@@ -14,9 +18,19 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const appAuth = getAuth(app);
 
-const appAuth = getAuth(app); 
-const appDb = getFirestore(app);
+
+// ✅ Enable single-tab offline persistence
+const appDb = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentSingleTabManager({}),
+  }),
+});
+
+
+
+
 
 export { appAuth, appDb, app };
 

@@ -1,33 +1,30 @@
+import { Timestamp } from "firebase/firestore";
 
+export interface UserProfile {
+  birthDate: string;
+  dateJoined: Timestamp;
+  emailNotifications: boolean;
+  healthConditions: string[];
+  notificationReminderTiming: number;
+  pushNotifications: boolean;
+  timezone: string;
+  userType: string;
+}
 
-
-export interface MedicationInfo  {
+export interface MedicationInfo {
   id: string;
   name: string;
   instruction: string;
   strength: string;
-};
+}
 
-export interface Dose {
-  userId: string;
-  medicationId: string;
-  medicationName: string;
-  medicationStrength: string;
-  medicationInstruction: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:MM
-  utcDateTime: string;
-  taken: boolean;
-  notificationSent: boolean;
-};
-
-export interface GenerateMonthlyDosesParams{
+export interface GenerateMonthlyDosesParams {
   startDate: string; // "YYYY-MM-DD"
   selectedDays: string[]; // ['monday', 'wednesday', ...]
   timeSlots: string[]; // ['08:00', '12:30', ...]
   medicationInfo: MedicationInfo;
   userId: string;
-};
+}
 
 export interface MedicationProps {
   id: string;
@@ -42,7 +39,7 @@ export interface MedicationProps {
     timeSlots: string[];
     type: string;
   };
-  status: string
+  status: string;
 }
 
 export interface DosesScheduleProps {
@@ -56,14 +53,23 @@ export interface DosesScheduleProps {
   taken: boolean;
   time: string;
   userId: string;
-  utcDateTime: string;
+  Timestamp: Timestamp;
 }
 
+export interface CreateDoseProps {
+  userId: string;
+  medicationId: string;
+  medicationName: string;
+  medicationStrength: string;
+  medicationInstruction: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:MM
+  taken: boolean;
+  Timestamp: Timestamp;
+  notificationSent: boolean;
+}
 
 export interface GroupedDailyDosesProps {
   time: string;
-  medications: DosesScheduleProps[]
+  medications: DosesScheduleProps[];
 }
-  
-
-

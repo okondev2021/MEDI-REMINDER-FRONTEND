@@ -46,6 +46,13 @@ const Medications = () => {
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div className="grid grid-cols-1 gap-4 p-4">
+                        {medications?.length === 0 && (
+                            <div className="flex flex-col items-center justify-center p-4 text-gray-500">
+                                <PillIcon size={40} className="mb-2" />
+                                <p className="text-lg font-medium">No medications found</p>
+                                <p className="text-sm">Add your medications to get started</p>
+                            </div>
+                        )}
                         {medications?.map((medication, index) => (
                             <div key={index} className={`p-4 rounded-lg border cursor-pointer ${medication.status ? 'border-gray-200 bg-white' : 'border-gray-200 bg-gray-50'}`}>
                                 <div className="flex items-start justify-between">

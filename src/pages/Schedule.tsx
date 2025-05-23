@@ -85,10 +85,9 @@ const Schedule = () => {
                         <h3 className="text-lg font-medium text-gray-800">
                             Daily Schedule
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">{date?.getDate()}</p>
                     </div>
                     <div className="divide-y divide-gray-200">
-                        {(dailySchedule && dailySchedule.length < 1) && <p className='p-4'>You do not have any medication today.</p>}
+                        {(dailySchedule && dailySchedule.length < 1) && <p className='p-4'>You do not have any medication today 😁😁.</p>}
                         {dailySchedule?.map((schedule, index) => (
                             <div key={index} className="p-4">
                                 <div className="flex items-center justify-between mb-3">

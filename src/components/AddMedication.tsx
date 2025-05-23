@@ -210,7 +210,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                 </label>
                                 <div className="flex">
                                     <input onChange={(e) => setMedicationStrength(e.target.value)} type="text" id="strength" placeholder="e.g., 10" className="w-2/3 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-                                    <select onChange={(e) => setMedicationStrengthUnit(e.target.value)} className="w-1/3 border-l-0 border border-gray-300 rounded-r-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <select onChange={(e) => setMedicationStrengthUnit(e.target.value)} className="cursor-pointer w-1/3 border-l-0 border border-gray-300 rounded-r-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="mg">mg</option>
                                         <option value="mcg">mcg</option>
                                         <option value="g">g</option>
@@ -254,9 +254,11 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                 Days of Week
                             </label>
                             <div className="flex flex-wrap gap-2">
-                                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => <button key={day} type="button" className={`px-3 py-1 rounded-full text-sm ${days[day as keyof typeof days] ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'bg-gray-100 text-gray-500 border border-gray-200'}`} onClick={() => handleDayToggle(day)}>
-                                    {day.charAt(0).toUpperCase() + day.slice(1, 3)}
-                                </button>)}
+                                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day =>
+                                    <button key={day} type="button" className={`cursor-pointer px-3 py-1 rounded-full text-sm ${days[day as keyof typeof days] ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'bg-gray-100 text-gray-500 border border-gray-200'}`} onClick={() => handleDayToggle(day)}>
+                                        {day.charAt(0).toUpperCase() + day.slice(1, 3)}
+                                    </button>
+                                )}
                             </div>
                         </div>}
                         <div>
@@ -276,7 +278,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                     </div>
                                     <input type="time" value={timeObj.time} onChange={e => updateTime(index, 'time', e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                     <select value={timeObj.period} onChange={e => updateTime(index, 'period', e.target.value)} className="ml-2 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <option value="AM">AM</option>
+                                        <option  value="AM">AM</option>
                                         <option value="PM">PM</option>
                                     </select>
                                     {times.length > 1 && <button type="button" onClick={() => removeTime(index)} className="ml-2 p-1 text-gray-400 hover:text-gray-600">
@@ -293,7 +295,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <CalendarIcon size={16} className="text-gray-400" />
                                 </div>
-                                <input onChange={(e) => setStartDate(e.target.value)} type="date" id="start-date" className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <input onChange={(e) => setStartDate(e.target.value)} type="date" id="start-date" className="cursor-pointer w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
                             </div>
                         </div>
                     </div>

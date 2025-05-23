@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import AuthText from "../components/AuthText";
 import AuthHeader from "../components/AuthHeader";
@@ -62,9 +62,14 @@ const SignUp = () => {
 
                 await setDoc(doc(appDb, "userProfile", user.uid), {
                     userType: "patient",
-                    birthDate: "2000-01-01",
                     dateJoined: Timestamp.now(),
-                    healthConditions: ["cough", "polio"]
+                    // user settings
+                    healthConditions: ["cough", "polio"],
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    pushNotifications: true,
+                    emailNotifications: true,
+                    notificationReminderTiming: 5, // minutes
+                    birthDate: "2000-01-01",
                 });
             }
 

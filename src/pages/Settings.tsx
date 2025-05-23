@@ -1,6 +1,12 @@
-import { BellIcon, SmartphoneIcon, MailIcon, ClockIcon, UserIcon, ShieldIcon } from 'lucide-react';
+import { BellIcon, SmartphoneIcon, MailIcon, ClockIcon, UserIcon } from 'lucide-react';
+import { IAIATimezones } from '@/database';
+import { useAuthContext } from '@/context/AuthContextProvider';
 
 const SettingsPage = () => {
+
+
+    const { userProfileInfo, currentUser } = useAuthContext();
+
     
     return (
         <div className="max-w-3xl mx-auto">
@@ -26,7 +32,7 @@ const SettingsPage = () => {
                                 </div>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" className="sr-only peer" defaultChecked />
+                                <input type="checkbox" className="sr-only peer" checked={userProfileInfo?.pushNotifications} />
                                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                             </label>
                         </div>
@@ -43,7 +49,7 @@ const SettingsPage = () => {
                                 </div>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" className="sr-only peer" />
+                                <input type="checkbox" className="sr-only peer" checked={userProfileInfo?.emailNotifications} />
                                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                             </label>
                         </div>
@@ -57,7 +63,8 @@ const SettingsPage = () => {
                                     </p>
                                 </div>
                             </div>
-                            <select className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" value={userProfileInfo?.notificationReminderTiming.toString()} >
+                                <option value="1"> 1 minute</option>
                                 <option value="5">5 minutes</option>
                                 <option value="10">10 minutes</option>
                                 <option value="15">15 minutes</option>
@@ -77,29 +84,31 @@ const SettingsPage = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Full Name
                             </label>
-                            <input type="text" defaultValue="Sarah Johnson" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input type="text" defaultValue={currentUser.name} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Email Address
                             </label>
-                            <input type="email" defaultValue="sarah.johnson@example.com" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input type="email" defaultValue={currentUser.email} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-1">
                                 Time Zone
                             </label>
-                            <select className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option>Pacific Time (PT)</option>
-                                <option>Mountain Time (MT)</option>
-                                <option>Central Time (CT)</option>
-                                <option>Eastern Time (ET)</option>
-                            </select>
+                  
+                            <input id="timezone" list='timezones' value={userProfileInfo.timezone} name='timezone' className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" placeholder='Choose your timezone' />
+                            <datalist id='timezones'>
+                                {Object.keys(IAIATimezones).map((timezone, index) => (
+                                    <option key={index} value={timezone} />
+                                ))}
+                            </datalist>
                         </div>
                     </div>
                 </div>
-                {/* Privacy & Security */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+
+                {/* Privacy & Security still pending for now */}
+                {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
                         <ShieldIcon size={20} className="mr-2 text-gray-500" />
                         Privacy & Security
@@ -130,7 +139,9 @@ const SettingsPage = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> */}
+
+
                 <div className="flex justify-end space-x-3">
                     <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
                         Cancel
