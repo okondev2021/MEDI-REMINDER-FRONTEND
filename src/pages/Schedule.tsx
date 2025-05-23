@@ -22,6 +22,17 @@ const Schedule = () => {
 
     const [date, setDate] = useState<Date | undefined>(new Date())
 
+    const improvedSetDate = (date: Date | undefined) => {
+        if (!date) {
+            return;
+        }
+        if (date < new Date()) {
+            setDate(new Date());
+        } else {
+            setDate(date);
+        }
+    }
+
     const { currentUser } = useAuthContext();
 
     const [dailySchedule, setDailySchedule] = useState<GroupedDailyDosesProps[]>()
@@ -61,7 +72,7 @@ const Schedule = () => {
                     <Calendar
                         mode="single"
                         selected={date}
-                        onSelect={setDate}
+                        onSelect={improvedSetDate}
                         className="rounded-md border w-full"
                         classNames={{
                             months: ' cursor-pointer flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1',

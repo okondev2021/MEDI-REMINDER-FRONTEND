@@ -1,7 +1,7 @@
 import { CheckCircleIcon, XCircleIcon, ClockIcon } from 'lucide-react';
 
 const MedicationHistory = () => {
-    // Sample data - in a real app, this would come from a backend
+
     const medicationHistory = [
         {
             date: 'Today',
@@ -117,7 +117,7 @@ const MedicationHistory = () => {
                 ))}
             </div>
             <div className="mt-6 text-center">
-                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                <button className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium">
                     View Complete History
                 </button>
             </div>

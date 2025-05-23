@@ -48,7 +48,7 @@ const Sidebar = ({ showSideNav, setShowSideNav }: { showSideNav: boolean;  setSh
 
     // useCloseMenuWhenClickedOutside
     return (
-        <div ref={sideNavRef} className={`overflow-x-hidden h-screen  max-h-screen fixed z-[100] bg-white border-r border-gray-200 flex flex-col md:w-[20%] text-nowrap ${showSideNav ? " w-[70%]" : "w-0"}`}>
+        <div ref={sideNavRef} className={`overflow-x-hidden h-screen overflow-hidden fixed z-[100] bg-white  border-r border-gray-200 flex flex-col md:w-[20%] text-nowrap ${showSideNav ? " w-[70%]" : "w-0"}`}>
             <div className="p-4 border-b border-gray-200 text-nowrap">
                 <div className="flex items-center">
                     <div className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center mr-2">
@@ -57,7 +57,7 @@ const Sidebar = ({ showSideNav, setShowSideNav }: { showSideNav: boolean;  setSh
                     <span className="text-xl font-bold text-blue-500 text-nowrap">MediRemind</span>
                 </div>
             </div>
-            <nav className="flex-1 pt-4 text-nowrap">
+            <nav className="pt-4 text-nowrap">
                 <ul>
                     {navItems.map(item => (
                         <NavLink onClick={ () => setShowSideNav(false)} to={item.href} key={item.id}>
@@ -77,8 +77,8 @@ const Sidebar = ({ showSideNav, setShowSideNav }: { showSideNav: boolean;  setSh
                     ))}
                 </ul> 
             </nav>
-            <div className="p-4 border-t border-gray-200 text-nowrap">
-                <button onClick={() => signOut(auth)} className="text-nowrap cursor-pointer flex items-center text-gray-600 px-4 py-2 w-full hover:bg-gray-50 rounded">
+            <div className="relative flex-1">
+                <button onClick={() => signOut(auth)} className={`border-t border-gray-200 text-nowrap fixed p-4 bottom-0 cursor-pointer flex items-center text-gray-600 hover:bg-gray-50 ${showSideNav ? "w-[70%]" : "w-0"}`}>
                     <LogOutIcon size={20} className="mr-3" />
                     <span>Log out</span>
                 </button>

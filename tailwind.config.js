@@ -5,7 +5,11 @@ export default {
       "./src/**/*.{js,ts,jsx,tsx}", // adjust for your structure
     ],
     theme: {
-      extend: {},
+      extend: {
+        height: {
+          'real-screen': 'calc(var(--real-vh, 100vh))',
+        }
+      },
     },
     plugins: [],
   }

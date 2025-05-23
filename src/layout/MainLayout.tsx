@@ -11,10 +11,10 @@ const MainLayout = () => {
     const [showSideNav, setShowSideNav] = useState(window.innerWidth > 640 ? true : false)
 
     return (
-        <div className="flex w-full min-h-screen bg-gray-50">
+        <div className="flex w-full bg-gray-50 relative">
             <Sidebar setShowSideNav={setShowSideNav} showSideNav={showSideNav} />
             <div className="flex flex-col flex-1 md:ml-[20%]">
-                {showSideNav && <div className='absolute z-[60] top-0 left-0 bg-black/50 w-full h-full md:hidden'></div>}
+                {showSideNav && <div className='absolute z-[60] top-0 left-0 bg-black/50 w-full h-full min-h-screen md:hidden'></div>}
                 <div className="relative">
                     <Header setShowSideNav={setShowSideNav} showSideNav={showSideNav} onNotificationClick={() => setShowNotifications(!showNotifications)} />
                     {showNotifications && (

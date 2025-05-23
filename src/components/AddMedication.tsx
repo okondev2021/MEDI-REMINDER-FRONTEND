@@ -264,9 +264,9 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <label className="block text-sm font-medium text-gray-700">
-                                    Times*
+                                    Times* (24-hour format)
                                 </label>
-                                <button type="button" className="flex items-center text-sm text-blue-600" onClick={addTime}>
+                                <button type="button" className="flex items-center text-sm text-blue-600 cursor-pointer" onClick={addTime}>
                                     <PlusIcon size={16} className="mr-1" />
                                     Add Time
                                 </button>
@@ -277,12 +277,9 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                         <AlarmClockIcon size={16} className="text-gray-400" />
                                     </div>
                                     <input type="time" value={timeObj.time} onChange={e => updateTime(index, 'time', e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                    <select value={timeObj.period} onChange={e => updateTime(index, 'period', e.target.value)} className="ml-2 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <option  value="AM">AM</option>
-                                        <option value="PM">PM</option>
-                                    </select>
-                                    {times.length > 1 && <button type="button" onClick={() => removeTime(index)} className="ml-2 p-1 text-gray-400 hover:text-gray-600">
-                                        <XIcon size={16} />
+                                    <input type="text" value={timeObj.period} onChange={e => updateTime(index, 'period', e.target.value)} className="ml-2 px-3 py-2 w-[50px]" disabled />
+                                    {times.length > 1 && <button type="button" onClick={() => removeTime(index)} className=" p-1 text-gray-400 hover:text-gray-600 curpo">
+                                        <XIcon className='cursor-pointer' size={16} />
                                     </button>}
                                 </div>)}
                             </div>

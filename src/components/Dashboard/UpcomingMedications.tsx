@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ClockIcon, CheckIcon } from 'lucide-react';
 import { useAuthContext } from '@/context/AuthContextProvider';
+import { Link } from 'react-router-dom';
 import {
     collectionGroup,
     query,
@@ -22,7 +23,7 @@ const UpcomingMedications = () => {
 
     const getUpcomingDoses = async () => {
         const currentLocalTime = DateTime.now().setZone(userProfileInfo.timezone) ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const endTimeRange = currentLocalTime.plus({ hours: 50 });
+        const endTimeRange = currentLocalTime.plus({ hours: 48 });
 
         const q = query(
             collectionGroup(appDb, 'doses'),
@@ -63,6 +64,11 @@ const UpcomingMedications = () => {
                 Upcoming Medications
             </h2>
             <div className="space-y-4">
+                {upComingMedications?.length === 0 && (
+                    <div className="text-center text-gray-500">
+                        <p>No upcoming medications in the next 48 hrs.</p>
+                    </div>
+                )}
                 {upComingMedications?.map(upComingMedication => (
                     <div key={upComingMedication.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex justify-between items-center">
@@ -93,9 +99,9 @@ const UpcomingMedications = () => {
                 ))}
             </div>
             <div className="mt-4 text-center">
-                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer">
+                <Link to={"/schedule"} className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer">
                     View Full Schedule
-                </button>
+                </Link>
             </div>
         </div>
     );
