@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { DosesScheduleProps } from '@/lib/types';
 import { groupDailyDosesByTime } from '@/lib/mediRemindUtils';
-import { GroupedDailyDosesProps } from '@/lib/types';
+import { GroupedDosesProps } from '@/lib/types';
 
 
 
@@ -35,7 +35,7 @@ const Schedule = () => {
 
     const { currentUser } = useAuthContext();
 
-    const [dailySchedule, setDailySchedule] = useState<GroupedDailyDosesProps[]>()
+    const [dailySchedule, setDailySchedule] = useState<GroupedDosesProps[]>()
 
     const getDailyScheduledDoses = async () => {
 

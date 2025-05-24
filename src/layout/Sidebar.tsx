@@ -48,7 +48,7 @@ const Sidebar = ({ showSideNav, setShowSideNav }: { showSideNav: boolean;  setSh
 
     // useCloseMenuWhenClickedOutside
     return (
-        <div ref={sideNavRef} className={`overflow-x-hidden h-screen overflow-hidden fixed z-[100] bg-white  border-r border-gray-200 flex flex-col md:w-[20%] text-nowrap ${showSideNav ? " w-[70%]" : "w-0"}`}>
+        <div ref={sideNavRef} className={` overflow-x-hidden h-screen overflow-hidden fixed z-[100] bg-white  border-r border-gray-200 flex flex-col md:w-[20%] text-nowrap ${showSideNav ? " w-[70%]" : "w-0"}`}>
             <div className="p-4 border-b border-gray-200 text-nowrap">
                 <div className="flex items-center">
                     <div className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center mr-2">
@@ -77,10 +77,10 @@ const Sidebar = ({ showSideNav, setShowSideNav }: { showSideNav: boolean;  setSh
                     ))}
                 </ul> 
             </nav>
-            <div className="relative flex-1">
-                <button onClick={() => signOut(auth)} className={`border-t border-gray-200 text-nowrap fixed p-4 bottom-0 cursor-pointer flex items-center text-gray-600 hover:bg-gray-50 ${showSideNav ? "w-[70%]" : "w-0"}`}>
+            <div className="relative flex-1 overflow-hidden">
+                <button onClick={() => signOut(auth)} className={`border-t overflow-hidden border-gray-200 text-nowrap fixed bottom-0 cursor-pointer md:w-[20%] flex items-center text-gray-600 hover:bg-gray-50 ${showSideNav ? "w-[70%] p-4" : "w-0 p-0"}`}>
                     <LogOutIcon size={20} className="mr-3" />
-                    <span>Log out</span>
+                    <p>Log out</p>
                 </button>
             </div>
         </div>

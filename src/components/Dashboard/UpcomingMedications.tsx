@@ -8,7 +8,8 @@ import {
     where,
     getDocs,
     orderBy,
-    Timestamp
+    Timestamp,
+    limit
 } from 'firebase/firestore';
 import { appDb } from '@/lib/firebase';
 import { DosesScheduleProps } from '@/lib/types';
@@ -30,6 +31,7 @@ const UpcomingMedications = () => {
             where('userId', '==', currentUser.uid),
             where('Timestamp', '>=', Timestamp.fromDate(currentLocalTime.toUTC().toJSDate())),
             where("Timestamp", "<=", Timestamp.fromDate(endTimeRange.toUTC().toJSDate())),
+            limit(4),
             orderBy('Timestamp', 'asc'),
         );
 
@@ -46,13 +48,11 @@ const UpcomingMedications = () => {
     }
 
     const timeLeftToMedication = (timestamp: Timestamp) => {
-
         const now = DateTime.now().setZone(userProfileInfo.timezone);
         const medTimeUTC = DateTime.fromJSDate(timestamp.toDate()).setZone(userProfileInfo.timezone);
         const diff = medTimeUTC.diff(now, "hours");
         return Math.round(diff.hours);
     }
-
 
     useEffect(() => {
         getUpcomingDoses();
@@ -90,7 +90,7 @@ const UpcomingMedications = () => {
                             <p>{upComingMedication.medicationInstruction}</p>
                         </div>
                         <div className="mt-3">
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-md flex items-center gap-1">
+                            <button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-md flex items-center gap-1">
                                 <CheckIcon size={16} />
                                 Mark as Taken
                             </button>

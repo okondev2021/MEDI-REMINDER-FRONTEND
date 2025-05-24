@@ -1,14 +1,10 @@
 import {
   GenerateMonthlyDosesParams,
-  CreateDoseProps,
-  GroupedDailyDosesProps,
   DosesScheduleProps,
+  GroupedDosesProps,
 } from "./types";
 import { Timestamp } from "firebase/firestore";
 import { DateTime } from "luxon";
-
-
-
 
 /**
  * Generates a list of doses for a month based on the provided parameters.
@@ -17,7 +13,7 @@ import { DateTime } from "luxon";
  * @param timeSlots - Array of time slots (e.g., ['08:00', '12:30']).
  * @param medicationInfo - Object containing basic medication information such as medication id, name, instruction, strength.
  * @param userId - User ID.
- * @returns Array of CreateDoseProps objects (newly generated medication doeses for the next 30 days).
+ * @returns Array of DosesScheduleProps objects (newly generated medication doeses for the next 30 days).
  */
 
 export function generateMonthlyDoses({
@@ -26,8 +22,8 @@ export function generateMonthlyDoses({
   timeSlots,
   medicationInfo,
   userId,
-}: GenerateMonthlyDosesParams): CreateDoseProps[] {
-  const doses: CreateDoseProps[] = [];
+}: GenerateMonthlyDosesParams): DosesScheduleProps[] {
+  const doses: DosesScheduleProps[] = [];
 
   const start = new Date(startDate);
   const end = new Date(start);
@@ -65,8 +61,6 @@ export function generateMonthlyDoses({
   return doses;
 }
 
-
-
 /**
  * Formats a new Date object to a date string in the format YYYY-MM-DD
  * @param date - Firestore Timestamp
@@ -78,8 +72,6 @@ export const formatDate = (date: Date): string =>
     2,
     "0"
   )}-${String(date.getDate()).padStart(2, "0")}`;
-
-
 
 /**
  * Groups daily doses by time. creates an array of objects, each containing a time and an array of medications scheduled for that time.
@@ -94,8 +86,8 @@ export const formatDate = (date: Date): string =>
  */
 export const groupDailyDosesByTime = (
   doses: DosesScheduleProps[]
-): GroupedDailyDosesProps[] => {
-  const groupedDoses: GroupedDailyDosesProps[] = [];
+): GroupedDosesProps[] => {
+  const groupedDoses: GroupedDosesProps[] = [];
   let storedTime: string[] = [];
 
   doses.forEach((dose) => {
@@ -128,6 +120,51 @@ export const groupDailyDosesByTime = (
 
 
 
+
+export const groupMedicationHistoryByDate = (
+  doses: DosesScheduleProps[],
+  timezone: string
+): GroupedDosesProps[] => {
+  const groupedMedicationDoses: GroupedDosesProps[] = [];
+  let storedDay: string[] = [];
+
+  doses.forEach((dose) => {
+    const medicationTime = DateTime.fromJSDate(dose.Timestamp.toDate())
+      .setZone(timezone)
+      .startOf("day")
+      .toFormat("yyyy-MM-dd");
+
+    if (!storedDay.includes(medicationTime)) {
+      storedDay.push(medicationTime);
+      groupedMedicationDoses.push({
+        time: medicationTime,
+        medications: [dose],
+      });
+    } else {
+
+      const matchedTime = groupedMedicationDoses?.find((doseItem) =>
+        doseItem.time === medicationTime
+      );
+
+      if (matchedTime) {
+        matchedTime["medications"].push(dose);
+      }
+    }
+  });
+
+  const sortedGroupedMedicationDoses = groupedMedicationDoses
+    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+    .map((group) => ({
+      ...group,
+      medications: group.medications.sort(
+        (a, b) => a.Timestamp.toMillis() - b.Timestamp.toMillis()
+      ),
+    }));
+
+  
+  return sortedGroupedMedicationDoses;
+};
+
 /**
  * Converts a Firestore Timestamp to a formatted time string in the user's timezone
  * @param ts - Firestore Timestamp
@@ -145,4 +182,3 @@ export const formatTimestampToUserTime = (
     .setZone(timezone)
     .toFormat(format);
 };
-

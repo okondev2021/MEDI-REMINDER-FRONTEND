@@ -1,4 +1,5 @@
 import { Timestamp } from "firebase/firestore";
+import { DateTime } from "luxon";
 
 export interface UserProfile {
   birthDate: string;
@@ -43,33 +44,22 @@ export interface MedicationProps {
 }
 
 export interface DosesScheduleProps {
-  id: string;
+  id?: string;
+  userId: string;
+  medicationId: string;
+  medicationName: string;
+  medicationStrength: string;
+  medicationInstruction: string;
   date: string;
-  medicationId: string;
-  medicationInstruction: string;
-  medicationName: string;
-  medicationStrength: string;
-  notificationSent: boolean;
-  taken: boolean;
   time: string;
-  userId: string;
-  Timestamp: Timestamp;
-}
-
-export interface CreateDoseProps {
-  userId: string;
-  medicationId: string;
-  medicationName: string;
-  medicationStrength: string;
-  medicationInstruction: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:MM
   taken: boolean;
   Timestamp: Timestamp;
   notificationSent: boolean;
 }
 
-export interface GroupedDailyDosesProps {
+export interface GroupedDosesProps {
   time: string;
   medications: DosesScheduleProps[];
 }
+
+
