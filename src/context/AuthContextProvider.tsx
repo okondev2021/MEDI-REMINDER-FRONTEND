@@ -57,11 +57,11 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
                 if (appAuth.currentUser) {
                     const profileGottent = await getUserProfile(user.uid)
 
-                    if(profileGottent) {
+                    if (profileGottent) {
                         setUserProfile(profileGottent as UserProfile);
                     }
-                } 
-        
+                }
+
             }
             else {
                 setLoading(false);
@@ -75,17 +75,17 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         return () => unsubscribe();
 
     }, [appAuth, navigate, appDb]);
-    
+
     const contextValue: contextProps = {
         loading,
         currentUser,
         userProfileInfo: {
             birthDate: userProfile?.birthDate ?? "",
             dateJoined: userProfile?.dateJoined ?? Timestamp.now(),
-            emailNotifications: userProfile?.emailNotifications ?? false,
+            emailNotification: userProfile?.emailNotification ?? false,
             healthConditions: userProfile?.healthConditions ?? [],
             notificationReminderTiming: userProfile?.notificationReminderTiming ?? 0,
-            pushNotifications: userProfile?.pushNotifications ?? false,
+            pushNotification: userProfile?.pushNotification ?? false,
             timezone: userProfile?.timezone ?? "",
             userType: userProfile?.userType ?? "",
         }
@@ -97,7 +97,7 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
             {children}
         </AuthContext.Provider>
     );
-} 
+}
 
 
 export default AuthContextProvider;

@@ -64,10 +64,10 @@ const SignUp = () => {
                     userType: "patient",
                     dateJoined: Timestamp.now(),
                     // user settings
-                    healthConditions: ["cough", "polio"],
+                    healthConditions: ["cough", "polio"], 
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    pushNotifications: true,
-                    emailNotifications: true,
+                    pushNotification: true,
+                    emailNotification: true,
                     notificationReminderTiming: 5, // minutes
                     birthDate: "2000-01-01",
                 });

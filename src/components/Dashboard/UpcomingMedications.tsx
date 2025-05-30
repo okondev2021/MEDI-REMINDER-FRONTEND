@@ -24,6 +24,7 @@ const UpcomingMedications = () => {
     const [upComingMedications, setUpcomingMedications] = useState<DosesScheduleProps[]>()
 
     const durationInHours = 24
+    
     const getUpcomingDoses = async () => {
         const currentLocalTime = DateTime.now().setZone(userProfileInfo?.timezone) ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
         const endTimeRange = currentLocalTime.plus({ hours: 24 });

@@ -4,10 +4,10 @@ import { DateTime } from "luxon";
 export interface UserProfile {
   birthDate: string;
   dateJoined: Timestamp;
-  emailNotifications: boolean;
+  emailNotification: boolean;
   healthConditions: string[];
   notificationReminderTiming: number;
-  pushNotifications: boolean;
+  pushNotification: boolean;
   timezone: string;
   userType: string;
 }
@@ -61,5 +61,3 @@ export interface GroupedDosesProps {
   time: string;
   medications: DosesScheduleProps[];
 }
-
-

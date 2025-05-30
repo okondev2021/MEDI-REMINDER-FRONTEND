@@ -16,7 +16,7 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
     const { currentUser } = useAuthContext();
 
     // Memoize the collection reference avoid unecessary interaction with db on every render
-    const medicationCollectionRef = useMemo(() => collection(appDb, "userProfile", currentUser.uid, "medications"), [appDb]);
+    const medicationCollectionRef = currentUser?.uid && useMemo(() => collection(appDb, "userProfile", currentUser?.uid, "medications"), [appDb]);
 
     const [errorMessage, setErrorMessage] = useState("")
 
@@ -111,72 +111,76 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
         const arrayDays = Object.keys(days).filter((day) => days[day as keyof typeof days])
         const arrayTimeSlot = times.map((time) => time.time)
 
-        try {
-            const medicationResponse = await addDoc(medicationCollectionRef, {
-                medicationInformation: {
-                    name: medicationName,
-                    instructions: medicationInstruction,
-                    medicationStrength: medicationStrength + " " + medicationStrengthUnit,
-                    startDate: startDate,
-                },
-                schedule: {
-                    type: frequency,
-                    days: arrayDays,
-                    timeSlots: arrayTimeSlot
-                },
-                status: true
-            });
-
-            const medicationId = medicationResponse?.id
-
-            if (medicationId) {
-
-                const dataForDose: GenerateMonthlyDosesParams = {
-                    startDate: startDate,
-                    selectedDays: arrayDays,
-                    timeSlots: arrayTimeSlot,
-                    medicationInfo: {
-                        id: medicationId,
+        if (medicationCollectionRef) {
+            
+            try {
+                
+                const medicationResponse = await addDoc(medicationCollectionRef, {
+                    medicationInformation: {
                         name: medicationName,
-                        strength: medicationStrength + " " + medicationStrengthUnit,
-                        instruction: medicationInstruction
+                        instructions: medicationInstruction,
+                        medicationStrength: medicationStrength + " " + medicationStrengthUnit,
+                        startDate: startDate,
                     },
-                    userId: currentUser.uid,
-                };
-
-                const generatedDoses = generateMonthlyDoses(dataForDose)
-
-                const batch = writeBatch(appDb);
-
-                const dosesCollectionRef = collection(appDb, "userProfile", currentUser.uid, "medications", medicationId, "doses")
-
-                generatedDoses.forEach((dose) => {
-                    const doseDocRef = doc(dosesCollectionRef)
-                    batch.set(doseDocRef, dose);
+                    schedule: {
+                        type: frequency,
+                        days: arrayDays,
+                        timeSlots: arrayTimeSlot
+                    },
+                    status: true
                 });
 
+                const medicationId = medicationResponse?.id
 
-                await batch.commit(); // Commit the batch, which applies all writes atomically
+                if (medicationId) {
 
+                    const dataForDose: GenerateMonthlyDosesParams = {
+                        startDate: startDate,
+                        selectedDays: arrayDays,
+                        timeSlots: arrayTimeSlot,
+                        medicationInfo: {
+                            id: medicationId,
+                            name: medicationName,
+                            strength: medicationStrength + " " + medicationStrengthUnit,
+                            instruction: medicationInstruction
+                        },
+                        userId: currentUser.uid,
+                    };
+
+                    const generatedDoses = generateMonthlyDoses(dataForDose)
+
+                    const batch = writeBatch(appDb);
+
+                    const dosesCollectionRef = collection(appDb, "userProfile", currentUser.uid, "medications", medicationId, "doses")
+
+                    generatedDoses.forEach((dose) => {
+                        const doseDocRef = doc(dosesCollectionRef)
+                        batch.set(doseDocRef, dose);
+                    });
+
+
+                    await batch.commit(); // Commit the batch, which applies all writes atomically
+
+                }
+
+                // unmount component
+                setNewMedication(false);
+
+                toast.success("Medication added successfully!")
             }
+            catch (error) {
 
-            // unmount component
-            setNewMedication(false);
+                const message = error instanceof FirebaseError ? error.message : "An unexpected error occurred";
 
-            toast.success("Medication added successfully!")
-        }
-        catch (error) {
+                setErrorMessage(message);
 
-            const message = error instanceof FirebaseError ? error.message : "An unexpected error occurred";
-
-            setErrorMessage(message);
-
-            setTimeout(() => {
-                setErrorMessage("")
-            }, 4000)
-        }
-        finally {
-            setLoading(false);
+                setTimeout(() => {
+                    setErrorMessage("")
+                }, 4000)
+            }
+            finally {
+                setLoading(false);
+            }
         }
     }
 

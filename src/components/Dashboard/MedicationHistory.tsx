@@ -86,6 +86,7 @@ const MedicationHistory = () => {
             </div>
             <div className="space-y-8">
                 {!medicationHistory && <LoadingSpinner size='lg' label='History Loading' />} 
+                {medicationHistory && medicationHistory.length < 1 && <p>You have no medication doses yet. Add one to get started.</p>}
                 {medicationHistory?.map((day) => (
                     <div key={day.time} className="relative">
                         <div className="flex items-center gap-4 mb-4">
