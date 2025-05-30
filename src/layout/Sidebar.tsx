@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import { LayoutDashboardIcon, CalendarIcon, PillIcon, SettingsIcon, HelpCircleIcon, LogOutIcon } from 'lucide-react';
+import { LayoutDashboardIcon, CalendarIcon, PillIcon, SettingsIcon, HelpCircleIcon, LogOutIcon, HistoryIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
 import { useCloseMenuWhenClickedOutside } from '@/hooks/useCloseMenuWhenClickedOutside ';
@@ -15,22 +15,32 @@ const Sidebar = ({ showSideNav, setShowSideNav }: { showSideNav: boolean;  setSh
             label: 'Dashboard',
             icon: <LayoutDashboardIcon size={20} />,
             href: "/"
-        }, {
+        },
+        {
             id: 'schedule',
             label: 'Schedule',
             icon: <CalendarIcon size={20} />,
             href: "/schedule"
-        }, {
+        },
+        {
             id: 'medications',
             label: 'Medications',
             icon: <PillIcon size={20} />,
             href: "/medications"
-        }, {
+        },
+        {
+            id: 'history',
+            label: 'History',
+            icon: <HistoryIcon size={20} />,
+            href: "/history"
+        },
+        {
             id: 'settings',
             label: 'Settings',
             icon: <SettingsIcon size={20} />,
             href: "/settings"
-        }, {
+        },
+        {
             id: 'help',
             label: 'Help',
             icon: <HelpCircleIcon size={20} />,
@@ -78,7 +88,7 @@ const Sidebar = ({ showSideNav, setShowSideNav }: { showSideNav: boolean;  setSh
                 </ul> 
             </nav>
             <div className="relative flex-1 overflow-hidden">
-                <button onClick={() => signOut(auth)} className={`border-t overflow-hidden border-gray-200 text-nowrap fixed bottom-0 cursor-pointer md:w-[20%] flex items-center text-gray-600 hover:bg-gray-50 ${showSideNav ? "w-[70%] p-4" : "w-0 p-0"}`}>
+                <button onClick={() => signOut(auth)} className={`border-t overflow-hidden border-gray-200 text-nowrap fixed bottom-0 cursor-pointer md:w-[20%] flex items-center text-gray-600 hover:bg-gray-50 p-4 ${showSideNav ? "w-[70%]" : "w-0 px-0"}`}>
                     <LogOutIcon size={20} className="mr-3" />
                     <p>Log out</p>
                 </button>

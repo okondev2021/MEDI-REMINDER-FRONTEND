@@ -15,6 +15,7 @@ import { appDb } from '@/lib/firebase';
 import { DosesScheduleProps } from '@/lib/types';
 import { DateTime } from "luxon";
 import { formatTimestampToUserTime } from '@/lib/mediRemindUtils';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 const UpcomingMedications = () => {
 
@@ -22,13 +23,14 @@ const UpcomingMedications = () => {
 
     const [upComingMedications, setUpcomingMedications] = useState<DosesScheduleProps[]>()
 
+    const durationInHours = 24
     const getUpcomingDoses = async () => {
-        const currentLocalTime = DateTime.now().setZone(userProfileInfo.timezone) ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const endTimeRange = currentLocalTime.plus({ hours: 48 });
+        const currentLocalTime = DateTime.now().setZone(userProfileInfo?.timezone) ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const endTimeRange = currentLocalTime.plus({ hours: 24 });
 
         const q = query(
             collectionGroup(appDb, 'doses'),
-            where('userId', '==', currentUser.uid),
+            where('userId', '==', currentUser?.uid),
             where('Timestamp', '>=', Timestamp.fromDate(currentLocalTime.toUTC().toJSDate())),
             where("Timestamp", "<=", Timestamp.fromDate(endTimeRange.toUTC().toJSDate())),
             limit(4),
@@ -48,15 +50,18 @@ const UpcomingMedications = () => {
     }
 
     const timeLeftToMedication = (timestamp: Timestamp) => {
-        const now = DateTime.now().setZone(userProfileInfo.timezone);
-        const medTimeUTC = DateTime.fromJSDate(timestamp.toDate()).setZone(userProfileInfo.timezone);
+        const now = DateTime.now().setZone(userProfileInfo?.timezone);
+        const medTimeUTC = DateTime.fromJSDate(timestamp.toDate()).setZone(userProfileInfo?.timezone);
         const diff = medTimeUTC.diff(now, "hours");
         return Math.round(diff.hours);
     }
 
     useEffect(() => {
+        if (!userProfileInfo?.timezone) {
+            return;
+        }
         getUpcomingDoses();
-    }, [])
+    }, [userProfileInfo?.timezone])
 
     return (
         <div className="bg-white rounded-lg shadow p-6">
@@ -64,11 +69,13 @@ const UpcomingMedications = () => {
                 Upcoming Medications
             </h2>
             <div className="space-y-4">
+                {!upComingMedications && <LoadingSpinner size='lg' label='Upcoming Medication Loading' />}
                 {upComingMedications?.length === 0 && (
                     <div className="text-center text-gray-500">
-                        <p>No upcoming medications in the next 48 hrs.</p>
+                        <p>No upcoming medications in the next {durationInHours} hrs.</p>
                     </div>
                 )}
+
                 {upComingMedications?.map(upComingMedication => (
                     <div key={upComingMedication.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex justify-between items-center">
@@ -78,7 +85,7 @@ const UpcomingMedications = () => {
                             </div>
                             <div className="text-right">
                                 <p className="font-medium">
-                                    {formatTimestampToUserTime(upComingMedication.Timestamp, userProfileInfo.timezone)}
+                                    {userProfileInfo?.timezone && formatTimestampToUserTime(upComingMedication.Timestamp, userProfileInfo?.timezone)}
                                 </p>
                                 <p className="text-sm text-blue-600 flex items-center justify-end gap-1">
                                     <ClockIcon size={14} />

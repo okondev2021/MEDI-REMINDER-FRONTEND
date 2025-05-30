@@ -1,3 +1,4 @@
+
 import { BellIcon, SmartphoneIcon, MailIcon, ClockIcon, UserIcon } from 'lucide-react';
 import { IAIATimezones } from '@/database';
 import { useAuthContext } from '@/context/AuthContextProvider';
@@ -6,6 +7,8 @@ const SettingsPage = () => {
 
 
     const { userProfileInfo, currentUser } = useAuthContext();
+
+
 
     
     return (
@@ -84,20 +87,20 @@ const SettingsPage = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Full Name
                             </label>
-                            <input type="text" defaultValue={currentUser.name} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input type="text" defaultValue={currentUser?.name} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Email Address
                             </label>
-                            <input type="email" defaultValue={currentUser.email} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input type="email" defaultValue={currentUser?.email} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                         <div>
                             <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-1">
                                 Time Zone
                             </label>
                   
-                            <input id="timezone" list='timezones' value={userProfileInfo.timezone} name='timezone' className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" placeholder='Choose your timezone' />
+                            <input id="timezone" list='timezones' value={userProfileInfo?.timezone} name='timezone' className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" placeholder='Choose your timezone' />
                             <datalist id='timezones'>
                                 {Object.keys(IAIATimezones).map((timezone, index) => (
                                     <option key={index} value={timezone} />

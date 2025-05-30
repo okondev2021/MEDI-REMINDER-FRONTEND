@@ -2,6 +2,7 @@ import { CheckCircleIcon, XCircleIcon, ClockIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/context/AuthContextProvider';
 import { appDb } from '@/lib/firebase';
+import { Link } from 'react-router-dom';
 import {
     collectionGroup,
     query,
@@ -15,12 +16,14 @@ import { DosesScheduleProps, GroupedDosesProps } from '@/lib/types';
 import { groupMedicationHistoryByDate } from '@/lib/mediRemindUtils';
 import { DateTime } from 'luxon';
 import { formatTimestampToUserTime } from '@/lib/mediRemindUtils';
+import LoadingSpinner from '../common/LoadingSpinner';
+
 
 const MedicationHistory = () => {
 
     const { currentUser, userProfileInfo } = useAuthContext();
 
-    const now = DateTime.local().setZone(userProfileInfo.timezone).startOf('day');
+    const now = DateTime.local().setZone(userProfileInfo?.timezone).startOf('day');
     const yesterday = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
 
     const [medicationHistory, setMedicationHistory] = useState<GroupedDosesProps[]>()    
@@ -28,11 +31,11 @@ const MedicationHistory = () => {
     const getBriefMedicationHistory = async () => {
 
         // Get the current local time from end of the day in the user's timezone
-        const currentLocalTime = DateTime.now().setZone(userProfileInfo.timezone).endOf('day') ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const currentLocalTime = DateTime.now().setZone(userProfileInfo?.timezone).endOf('day') ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         const q = query(
             collectionGroup(appDb, 'doses'),
-            where('userId', '==', currentUser.uid),
+            where('userId', '==', currentUser?.uid),
             where('Timestamp', '<=', Timestamp.fromDate(currentLocalTime.toUTC().toJSDate())),
             limit(6),
             orderBy('Timestamp', 'desc'),
@@ -47,12 +50,16 @@ const MedicationHistory = () => {
             }
         ));
 
-        setMedicationHistory(groupMedicationHistoryByDate(dosesList, userProfileInfo.timezone))
+        (userProfileInfo?.timezone && setMedicationHistory(groupMedicationHistoryByDate(dosesList, userProfileInfo?.timezone)))
     }
 
     useEffect(() => {
+        if (!userProfileInfo?.timezone) {
+            return;
+        }
+
         getBriefMedicationHistory();
-    }, [])
+    }, [userProfileInfo?.timezone])
 
 
 
@@ -78,6 +85,7 @@ const MedicationHistory = () => {
                 </div>
             </div>
             <div className="space-y-8">
+                {!medicationHistory && <LoadingSpinner size='lg' label='History Loading' />} 
                 {medicationHistory?.map((day) => (
                     <div key={day.time} className="relative">
                         <div className="flex items-center gap-4 mb-4">
@@ -116,7 +124,7 @@ const MedicationHistory = () => {
                                                     </span>
                                                 </div>
                                                 <span className="text-sm text-gray-600">
-                                                    {formatTimestampToUserTime(med.Timestamp, userProfileInfo.timezone)}
+                                                    {userProfileInfo?.timezone && formatTimestampToUserTime(med.Timestamp, userProfileInfo?.timezone)}
                                                 </span>
                                             </div>
                                             <div>
@@ -139,12 +147,12 @@ const MedicationHistory = () => {
                 ))}
             </div>
             <div className="mt-6 text-center">
-                <button className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium">
+                <Link to={"/history"} className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium">
                     View Complete History
-                </button>
+                </Link>
             </div>
         </div>
-    );
+    ); 
 }
 
 export default MedicationHistory;

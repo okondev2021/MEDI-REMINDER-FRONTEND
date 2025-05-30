@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { useAuthContext } from '../context/AuthContextProvider';
+import SplashScreen from '@/components/common/SplashScreen';
 
 
 const AuthWrapper = ({ children }: { children: ReactNode }) => {
@@ -10,9 +11,13 @@ const AuthWrapper = ({ children }: { children: ReactNode }) => {
     return (
         loading
         ? 
-            <p>.....</p>
+            <div>
+                <SplashScreen />
+            </div>
         :
-            <div>{children}</div>
+            <div>
+                {children}
+            </div>
     );
 
 }

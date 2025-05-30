@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { EditIcon } from 'lucide-react';
+import { CheckIcon } from 'lucide-react';
 import { Calendar } from "@/components/ui/calendar"
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -10,19 +10,33 @@ import {
     collectionGroup,
     query,
     where,
-    getDocs
+    getDocs,
+    Timestamp
 } from 'firebase/firestore';
 import { DosesScheduleProps } from '@/lib/types';
 import { groupDailyDosesByTime } from '@/lib/mediRemindUtils';
 import { GroupedDosesProps } from '@/lib/types';
-
-
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { DateTime } from 'luxon';
 
 const Schedule = () => {
 
+    const { currentUser, userProfileInfo } = useAuthContext();
+
     const [date, setDate] = useState<Date | undefined>(new Date())
 
+
+    const [dailySchedule, setDailySchedule] = useState<GroupedDosesProps[] | null>()
+
+    const checkIfPresentDay = (doseTime: Timestamp) => {
+        const currentDay = DateTime.now().setZone(userProfileInfo?.timezone);
+        const doseDate = DateTime.fromJSDate(doseTime.toDate()).setZone(userProfileInfo?.timezone);
+        return doseDate.startOf('day') > currentDay.startOf('day');
+    }
+
+    // ensures users cannot select previous date
     const improvedSetDate = (date: Date | undefined) => {
+        setDailySchedule(null);
         if (!date) {
             return;
         }
@@ -33,15 +47,11 @@ const Schedule = () => {
         }
     }
 
-    const { currentUser } = useAuthContext();
-
-    const [dailySchedule, setDailySchedule] = useState<GroupedDosesProps[]>()
-
     const getDailyScheduledDoses = async () => {
 
         const q = query(
             collectionGroup(appDb, 'doses'),
-            where('userId', '==', currentUser.uid),
+            where('userId', '==', currentUser?.uid),
             where('date', '==', formatDate(date ?? new Date()))
         );
 
@@ -60,7 +70,6 @@ const Schedule = () => {
     useEffect(() => {
         getDailyScheduledDoses();
     }, [date])
-
 
     return (
         <div className="max-w-6xl mx-auto">
@@ -97,10 +106,11 @@ const Schedule = () => {
                             Daily Schedule
                         </h3>
                     </div>
-                    <div className="divide-y divide-gray-200">
-                        {(dailySchedule && dailySchedule.length < 1) && <p className='p-4'>You do not have any medication today 😁😁.</p>}
+                    <div className="p-4 space-y-4">
+                        {!dailySchedule && <LoadingSpinner label='Loading Schedule' size='lg' />}
+                        {(dailySchedule && dailySchedule.length < 1) && <p>You do not have any medication today 😁😁.</p>}
                         {dailySchedule?.map((schedule, index) => (
-                            <div key={index} className="p-4">
+                            <div key={index}>
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="font-medium text-gray-900">
                                         {schedule.time}
@@ -120,9 +130,13 @@ const Schedule = () => {
                                                     {med.medicationInstruction}
                                                 </p>
                                             </div>
-                                            <button onClick={() => { }} className="p-1 text-gray-400 hover:text-gray-600">
-                                                <EditIcon size={16} />
-                                            </button>
+
+                                            {!checkIfPresentDay(med.Timestamp) && (
+                                                <button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-md flex items-center gap-1">
+                                                    <CheckIcon size={16} />
+                                                    Mark as Taken
+                                                </button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

@@ -14,8 +14,8 @@ interface contextProps {
         name: string;
         uid: string;
         email: string;
-    },
-    userProfileInfo: UserProfile;
+    } | null,
+    userProfileInfo: UserProfile | null;
 }
 
 export const AuthContext = createContext<contextProps | undefined>(undefined);
@@ -24,8 +24,9 @@ export const AuthContext = createContext<contextProps | undefined>(undefined);
 const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
 
+    const [loading, setLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState<{ name: string; uid: string; email: string } | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile>()
 
 
@@ -47,8 +48,14 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
             if (user && user.uid) {
                 setLoading(false);
 
+                setCurrentUser({
+                    name: user.displayName ?? "",
+                    uid: user.uid,
+                    email: user.email ?? ""
+                });
+
                 if (appAuth.currentUser) {
-                    const profileGottent = await getUserProfile(appAuth.currentUser?.uid)
+                    const profileGottent = await getUserProfile(user.uid)
 
                     if(profileGottent) {
                         setUserProfile(profileGottent as UserProfile);
@@ -70,12 +77,8 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     }, [appAuth, navigate, appDb]);
     
     const contextValue: contextProps = {
-        loading: loading,
-        currentUser: {
-            name: appAuth?.currentUser?.displayName ?? "",
-            email: appAuth?.currentUser?.email ?? "",
-            uid: appAuth?.currentUser?.uid ?? ""
-        },
+        loading,
+        currentUser,
         userProfileInfo: {
             birthDate: userProfile?.birthDate ?? "",
             dateJoined: userProfile?.dateJoined ?? Timestamp.now(),

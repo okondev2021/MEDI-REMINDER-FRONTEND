@@ -5,27 +5,34 @@ import { useAuthContext } from '../context/AuthContextProvider';
 import { collection, getDocs } from 'firebase/firestore';
 import { appDb } from '../lib/firebase';
 import { MedicationProps } from '../lib/types';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { Trash2Icon } from 'lucide-react';
 
 
 const Medications = () => {
 
     const { currentUser } = useAuthContext();
 
-    const medicationCollectionRef = useMemo(() => collection(appDb, "userProfile", currentUser.uid, "medications"), [appDb]);
+    const medicationCollectionRef = useMemo(() => currentUser?.uid && collection(appDb, "userProfile", currentUser?.uid, "medications"), [appDb]);
     
     const [newMedication, setNewMedication] = useState(false);
 
     const [medications, setMedications] = useState <MedicationProps[]>();
 
     const getMedications = async () => {
-        const medicationResponse = await getDocs(medicationCollectionRef);
+        if (medicationCollectionRef) {
+            const medicationResponse = await getDocs(medicationCollectionRef);
+            const medicationList = medicationResponse.docs.map((medication) => ({
+                ...(medication.data() as MedicationProps),
+                id: medication.id
+            }));
 
-        const medicationList = medicationResponse.docs.map((medication) => ({
-            ...(medication.data() as MedicationProps),
-            id: medication.id
-        }));
+            setMedications(medicationList);
+        }
+        else {
+            setMedications([]);
+        }
 
-        setMedications(medicationList);
     }
 
     useEffect(() => {
@@ -46,6 +53,7 @@ const Medications = () => {
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div className="grid grid-cols-1 gap-4 p-4">
+                        {!medications && <LoadingSpinner label='Loading Your Medications' size='lg' />}
                         {medications?.length === 0 && (
                             <div className="flex flex-col items-center justify-center p-4 text-gray-500">
                                 <PillIcon size={40} className="mb-2" />
@@ -83,6 +91,9 @@ const Medications = () => {
                                             <p className="mt-1 text-sm text-gray-600">
                                                 {medication.medicationInformation.instructions}
                                             </p>
+                                            <button className=' mt-3 text-red-600 cursor-pointer'>
+                                                <Trash2Icon size={20} />
+                                            </button>
                                         </div>
                                     </div>
                                     <div className="flex items-center">
