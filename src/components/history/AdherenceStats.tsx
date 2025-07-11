@@ -5,7 +5,8 @@ const AdherenceStats = () => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+        {/* stats 1 */}
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg cursor-pointer">
           <div className="flex items-center mb-2">
             <TrophyIcon className="h-5 w-5 text-blue-600 mr-2" />
             <h3 className="text-sm font-medium text-gray-800">
@@ -20,7 +21,8 @@ const AdherenceStats = () => {
             <div className="bg-blue-600 h-2 rounded-full" style={{ width: '92%' }}></div>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg">
+        {/* stats 2 */}
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg cursor-pointer">
           <div className="flex items-center mb-2">
             <FlameIcon className="h-5 w-5 text-orange-600 mr-2" />
             <h3 className="text-sm font-medium text-gray-800">
@@ -41,7 +43,8 @@ const AdherenceStats = () => {
             ))}
           </div>
         </div>
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+        {/* stats 3 */}
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg cursor-pointer">
           <div className="flex items-center mb-2">
             <AwardIcon className="h-5 w-5 text-purple-600 mr-2" />
             <h3 className="text-sm font-medium text-gray-800">Achievements</h3>
@@ -63,18 +66,15 @@ const AdherenceStats = () => {
             <span className="text-xs text-purple-600">
               2 of 5 badges earned
             </span>
-            <button className="text-xs text-purple-700 font-medium">
-              View all
-            </button>
           </div>
         </div>
       </div>
       <div className="mt-4 flex justify-end">
-        <button className="flex items-center bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md text-sm mr-2 hover:bg-gray-50">
+        <button className="flex items-center cursor-pointer bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md text-sm mr-2 hover:bg-gray-50">
           <DownloadIcon className="h-4 w-4 mr-2" />
           Download Report
         </button>
-        <button className="flex items-center bg-blue-600 text-white py-2 px-4 rounded-md text-sm hover:bg-blue-700">
+        <button className="flex items-center cursor-pointer bg-blue-600 text-white py-2 px-4 rounded-md text-sm hover:bg-blue-700">
           <ShareIcon className="h-4 w-4 mr-2" />
           Share Progress
         </button>

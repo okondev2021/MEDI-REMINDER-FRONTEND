@@ -3,8 +3,11 @@ import {
   DosesScheduleProps,
   GroupedDosesProps,
 } from "./types";
-import { Timestamp } from "firebase/firestore";
 import { DateTime } from "luxon";
+import { appDb } from "./firebase";
+import { toast } from "react-toastify";
+
+import { doc, updateDoc, Timestamp } from "firebase/firestore";
 
 /**
  * Generates a list of doses for a month based on the provided parameters.
@@ -52,7 +55,12 @@ export function generateMonthlyDoses({
             new Date(d.getFullYear(), d.getMonth(), d.getDate(), hour, minute)
           ),
           taken: false,
+          missed: false,
+          takenAt: Timestamp.fromDate(
+            new Date(d.getFullYear(), d.getMonth(), d.getDate(), hour, minute)
+          ),
           notificationSent: false,
+          lastNotifiedAt: null
         });
       }
     }
@@ -182,3 +190,52 @@ export const formatTimestampToUserTime = (
     .setZone(timezone)
     .toFormat(format);
 };
+
+export const markDoseAsTaken = async (
+  dose: DosesScheduleProps
+) => {
+  try {
+    const now = new Date();
+
+    const scheduledTime = dose.Timestamp.toDate();
+
+    const earlyLimit = new Date(scheduledTime.getTime() - 30 * 60 * 1000); // 30 minutes before
+
+    // const lateLimit = new Date(scheduledTime.getTime() + 3 * 60 * 60 * 1000); // 3 hrs after
+
+    if (now < earlyLimit) {
+      throw new Error(
+        "It's too early to take this dose. Try again closer to the time."
+      );
+    }
+
+    // PENDING REVIEW
+    // if (now > lateLimit) {
+    //   alert("⏰ This dose is too late to mark as taken.");
+    //   return;
+    // }
+
+    const doseRef = doc(
+      appDb,
+      "userProfile",
+      dose.userId,
+      "medications",
+      dose.medicationId,
+      "doses",
+      dose.id || ""
+    );
+
+    await updateDoc(doseRef, {
+      taken: true,
+      takenAt: Timestamp.now(),
+    });
+
+    toast.success("Dose marked as taken ✅");
+
+    return { success: true };
+  }
+  catch (error) {
+    toast.error(`Error marking dose as taken: ${error}`);
+  }
+};
+

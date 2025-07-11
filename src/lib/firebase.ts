@@ -5,6 +5,7 @@ import {
   persistentLocalCache,
   persistentSingleTabManager,
 } from "firebase/firestore";
+import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
@@ -19,7 +20,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const appAuth = getAuth(app);
-
+const messaging = getMessaging(app);
 
 // ✅ Enable single-tab offline persistence
 const appDb = initializeFirestore(app, {
@@ -32,5 +33,5 @@ const appDb = initializeFirestore(app, {
 
 
 
-export { appAuth, appDb, app };
+export { appAuth, appDb, app, messaging };
 

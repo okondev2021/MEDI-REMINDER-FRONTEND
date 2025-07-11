@@ -1,9 +1,15 @@
-import React from 'react';
+type SkeletonType = 'line' | 'circle' | 'card' | 'button';
+
+interface SkeletonLoaderProps {
+  type?: SkeletonType;
+  count?: number;
+}
+
 export function SkeletonLoader({
   type = 'line',
   count = 1
-}) {
-  const skeletonTypes = {
+}: SkeletonLoaderProps) {
+  const skeletonTypes: Record<SkeletonType, string> = {
     line: 'h-4 w-full',
     circle: 'h-12 w-12 rounded-full',
     card: 'h-32 w-full rounded-lg',

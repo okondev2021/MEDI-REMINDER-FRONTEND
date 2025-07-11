@@ -1,36 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AdherenceStats  from '../components/history/AdherenceStats';
 import MedicationHistoryList  from '../components/history/MedicationHistoryList';
-import HealthTips  from '../components/history/HealthTips';
 import { SkeletonLoader } from '../components/common/SkeletonLoader';
 
 
 const History = () => {
 
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        // Simulate loading delay
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, []);
+    // setIsLoading(false);
 
 
     if (isLoading) {
-        return <div className="p-6 max-w-7xl mx-auto">
-            <div className="mb-8">
-                <SkeletonLoader type="line" count={2} />
-            </div>
-            <div className="mb-6">
+        return (
+            <div className="p-6 max-w-7xl mx-auto">
+                <div className="mb-8">
+                    <SkeletonLoader type="line" count={2} />
+                </div>
+                <div className="mb-6">
+                    <SkeletonLoader type="card" />
+                </div>
+                <div className="mb-6">
+                    <SkeletonLoader type="card" />
+                </div>
                 <SkeletonLoader type="card" />
             </div>
-            <div className="mb-6">
-                <SkeletonLoader type="card" />
-            </div>
-            <SkeletonLoader type="card" />
-        </div>;
+        )
     }
     return (
         <div className="p-6 max-w-7xl mx-auto">
@@ -43,7 +38,7 @@ const History = () => {
                 </p>
             </div>
             <AdherenceStats />
-            <HealthTips />
+            {/* <HealthTips /> */}
             <MedicationHistoryList />
         </div>
     )

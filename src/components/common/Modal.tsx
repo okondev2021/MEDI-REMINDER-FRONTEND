@@ -1,10 +1,16 @@
 import React, { useEffect } from 'react';
 import { XIcon } from 'lucide-react';
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
 export function Modal({
   isOpen,
   onClose,
   children
-}) {
+}: ModalProps) {
   // Close on escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {

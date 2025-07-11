@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import AuthText from "../components/AuthText";
 import AuthHeader from "../components/AuthHeader";
@@ -9,6 +9,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { appAuth } from "../lib/firebase";
 import ErrorContainer from "../components/ErrorContainer";
+import { requestNotificationPermission } from "@/lib/requestNotificationPermission";
 
 const SignIn = () => {
 
@@ -37,7 +38,11 @@ const SignIn = () => {
         setAuthLoading(true)
 
         try {
-            await signInWithEmailAndPassword(appAuth, loginInfo.email, loginInfo.password);
+            const userCredentials = await signInWithEmailAndPassword(appAuth, loginInfo.email, loginInfo.password);
+
+            if (userCredentials.user) {
+                await requestNotificationPermission(userCredentials.user.uid)
+            }
 
             navigate('/');
         }

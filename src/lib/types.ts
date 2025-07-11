@@ -1,5 +1,4 @@
 import { Timestamp } from "firebase/firestore";
-import { DateTime } from "luxon";
 
 export interface UserProfile {
   birthDate: string;
@@ -10,6 +9,7 @@ export interface UserProfile {
   pushNotification: boolean;
   timezone: string;
   userType: string;
+  fcmToken: string;
 }
 
 export interface MedicationInfo {
@@ -53,8 +53,11 @@ export interface DosesScheduleProps {
   date: string;
   time: string;
   taken: boolean;
+  missed: boolean;
   Timestamp: Timestamp;
   notificationSent: boolean;
+  takenAt: Timestamp;
+  lastNotifiedAt: Timestamp | null;
 }
 
 export interface GroupedDosesProps {

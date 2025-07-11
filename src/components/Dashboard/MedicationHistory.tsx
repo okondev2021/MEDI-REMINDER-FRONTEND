@@ -86,7 +86,11 @@ const MedicationHistory = () => {
             </div>
             <div className="space-y-8">
                 {!medicationHistory && <LoadingSpinner size='lg' label='History Loading' />} 
-                {medicationHistory && medicationHistory.length < 1 && <p>You have no medication doses yet. Add one to get started.</p>}
+                {medicationHistory && medicationHistory.length < 1 && (
+                    <div>
+                        <p className="mt-3 text-sm text-gray-600" >You have no medication doses yet. Add one to get started.</p> 
+                    </div>
+                )}
                 {medicationHistory?.map((day) => (
                     <div key={day.time} className="relative">
                         <div className="flex items-center gap-4 mb-4">
@@ -103,7 +107,7 @@ const MedicationHistory = () => {
                                             ${med.taken === true
                                                 ? "border-green-500 bg-green-100"
                                                 :
-                                                DateTime.fromMillis(med.Timestamp.toMillis()).toLocal() < now && med.taken === false
+                                                DateTime.fromMillis(med.Timestamp.toMillis()).toLocal() < now || med.missed === true
                                                     ?
                                                     'border-red-500 bg-red-100'
                                                     :
@@ -132,7 +136,7 @@ const MedicationHistory = () => {
                                                 {med.taken === true
                                                     ? <CheckCircleIcon className="text-green-500" size={20} />
                                                     :
-                                                    DateTime.fromMillis(med.Timestamp.toMillis()).toLocal() < now && med.taken === false
+                                                    DateTime.fromMillis(med.Timestamp.toMillis()).toLocal() < now || med.missed === true
                                                         ?
                                                         <XCircleIcon className="text-red-500" size={20} /> 
                                                         :

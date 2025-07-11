@@ -11,6 +11,7 @@ import { appAuth, appDb } from "../lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { Timestamp } from 'firebase/firestore';
 import ErrorContainer from "../components/ErrorContainer";
+import { requestNotificationPermission } from "@/lib/requestNotificationPermission";
 
 
 const SignUp = () => {
@@ -70,7 +71,12 @@ const SignUp = () => {
                     emailNotification: true,
                     notificationReminderTiming: 5, // minutes
                     birthDate: "2000-01-01",
+                    // 
                 });
+            }
+
+            if (user) {
+                await requestNotificationPermission(user.uid);
             }
 
             navigate('/');

@@ -3,7 +3,7 @@ import { CheckIcon } from 'lucide-react';
 import { Calendar } from "@/components/ui/calendar"
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatDate } from '@/lib/mediRemindUtils';
+import { formatDate, markDoseAsTaken, groupDailyDosesByTime } from '@/lib/mediRemindUtils';
 import { appDb } from '@/lib/firebase';
 import { useAuthContext } from '@/context/AuthContextProvider';
 import {
@@ -13,11 +13,79 @@ import {
     getDocs,
     Timestamp
 } from 'firebase/firestore';
-import { DosesScheduleProps } from '@/lib/types';
-import { groupDailyDosesByTime } from '@/lib/mediRemindUtils';
 import { GroupedDosesProps } from '@/lib/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { DateTime } from 'luxon';
+import { UserProfile, DosesScheduleProps } from '@/lib/types';
+import { toast } from 'react-toastify';
+
+
+
+const ScheduleMedicationItem = ({ userProfileInfo, medication }: { userProfileInfo: UserProfile; medication: DosesScheduleProps; }) => {
+
+    const checkIfPresentDay = (doseTime: Timestamp) => {
+        const currentDay = DateTime.now().setZone(userProfileInfo?.timezone);
+        const doseDate = DateTime.fromJSDate(doseTime.toDate()).setZone(userProfileInfo?.timezone);
+        return doseDate.startOf('day') > currentDay.startOf('day');
+    }
+
+    const [loading, setLoading] = useState(false)
+
+    const [taken, setTaken] = useState(medication.taken);
+
+    const markMedicationDoseAsTaken = async () => {
+        setLoading(true);
+        try {
+            const response = await markDoseAsTaken(medication);
+            if (response && response.success) {
+                setTaken(true); // ✅ Only runs if the dose was actually marked
+            }
+        }
+        catch (err) {
+            return;
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    
+    const alreadyTaken = () => {
+        toast.info("This medication has already been taken")
+    }
+
+
+    return (
+        <div className="flex items-start justify-between bg-gray-50 p-3 rounded-lg">
+            <div>
+                <div className="font-medium text-gray-900">
+                    {medication.medicationName}
+                    <span className="ml-2 text-sm text-gray-500">
+                        {medication.medicationStrength}
+                    </span>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
+                    {medication.medicationInstruction}
+                </p>
+            </div>
+
+            {!checkIfPresentDay(medication.Timestamp) && (
+                <button
+                    onClick={medication.missed ? undefined : taken ? alreadyTaken : markMedicationDoseAsTaken}
+                    className={`${medication.missed ? " bg-red-600 hover:bg-red-700" : " bg-blue-600 hover:bg-blue-700"} text-white cursor-pointer text-sm py-2 px-4 rounded-md flex items-center gap-1`}>
+                    {loading ? "Processing" : (
+                        <>
+                            <CheckIcon size={16} />
+                            {medication.missed ? "Missed" : taken ? "Taken" : "Mark as Taken"}
+                        </>
+                    )}
+                </button>
+            )}
+        </div>
+    )
+}
+
+
+
 
 const Schedule = () => {
 
@@ -27,12 +95,6 @@ const Schedule = () => {
 
 
     const [dailySchedule, setDailySchedule] = useState<GroupedDosesProps[] | null>()
-
-    const checkIfPresentDay = (doseTime: Timestamp) => {
-        const currentDay = DateTime.now().setZone(userProfileInfo?.timezone);
-        const doseDate = DateTime.fromJSDate(doseTime.toDate()).setZone(userProfileInfo?.timezone);
-        return doseDate.startOf('day') > currentDay.startOf('day');
-    }
 
     // ensures users cannot select previous date
     const improvedSetDate = (date: Date | undefined) => {
@@ -52,6 +114,8 @@ const Schedule = () => {
         const q = query(
             collectionGroup(appDb, 'doses'),
             where('userId', '==', currentUser?.uid),
+            // where("taken", "==", false),
+            // where("missed", "==", false),
             where('date', '==', formatDate(date ?? new Date()))
         );
 
@@ -103,7 +167,7 @@ const Schedule = () => {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div className="p-6 border-b border-gray-200">
                         <h3 className="text-lg font-medium text-gray-800">
-                            Daily Schedule
+                            Daily Medication
                         </h3>
                     </div>
                     <div className="p-4 space-y-4">
@@ -117,27 +181,10 @@ const Schedule = () => {
                                     </span>
                                 </div>
                                 <div className="space-y-3">
-                                    {schedule.medications.map((med, medIndex) => (
-                                        <div key={medIndex} className="flex items-start justify-between bg-gray-50 p-3 rounded-lg">
-                                            <div>
-                                                <div className="font-medium text-gray-900">
-                                                    {med.medicationName}
-                                                    <span className="ml-2 text-sm text-gray-500">
-                                                        {med.medicationStrength}
-                                                    </span>
-                                                </div>
-                                                <p className="text-sm text-gray-600 mt-1">
-                                                    {med.medicationInstruction}
-                                                </p>
-                                            </div>
+                                    {userProfileInfo && schedule.medications.map((medication, medIndex) => (
 
-                                            {!checkIfPresentDay(med.Timestamp) && (
-                                                <button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-md flex items-center gap-1">
-                                                    <CheckIcon size={16} />
-                                                    Mark as Taken
-                                                </button>
-                                            )}
-                                        </div>
+                                        <ScheduleMedicationItem key={medIndex} userProfileInfo={userProfileInfo} medication={medication}  />
+
                                     ))}
                                 </div>
                             </div>

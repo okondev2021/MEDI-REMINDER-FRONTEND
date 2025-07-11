@@ -1,4 +1,4 @@
-import { useState } from 'react';
+// import { useState } from 'react';
 // XIcon, ChevronDownIcon, InfoIcon, AlarmClockIcon, CalendarIcon,
 import { TrashIcon } from 'lucide-react';
 
@@ -20,51 +20,51 @@ const EditMedication = ({
     medication
 }: EditMedicationProps) => {
     
-    const [frequency, setFrequency] = useState(medication?.frequency || 'daily');
+    // const [frequency, setFrequency] = useState(medication?.frequency || 'daily');
 
-    const [showFrequencyOptions, setShowFrequencyOptions] = useState(false);
+    // const [showFrequencyOptions, setShowFrequencyOptions] = useState(false);
 
-    const [days, setDays] = useState(medication?.days || {
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true,
-        saturday: true,
-        sunday: true
-    });
+    // const [days, setDays] = useState(medication?.days || {
+    //     monday: true,
+    //     tuesday: true,
+    //     wednesday: true,
+    //     thursday: true,
+    //     friday: true,
+    //     saturday: true,
+    //     sunday: true
+    // });
 
-    const [times, setTimes] = useState(medication?.times || [{
-        time: '08:00',
-        period: 'AM'
-    }]);
+    // const [times, setTimes] = useState(medication?.times || [{
+    //     time: '08:00',
+    //     period: 'AM'
+    // }]);
 
-    const handleDayToggle = (day: string) => {
-        setDays(prev => ({
-            ...prev,
-            [day]: !prev[day as keyof typeof prev]
-        }));
-    };
+    // const handleDayToggle = (day: string) => {
+    //     setDays(prev => ({
+    //         ...prev,
+    //         [day]: !prev[day as keyof typeof prev]
+    //     }));
+    // };
 
-    const addTime = () => {
-        setTimes([...times, {
-            time: '08:00',
-            period: 'AM'
-        }]);
-    };
+    // const addTime = () => {
+    //     setTimes([...times, {
+    //         time: '08:00',
+    //         period: 'AM'
+    //     }]);
+    // };
 
-    const removeTime = (index: number) => {
-        setTimes(times.filter((_, i) => i !== index));
-    };
+    // const removeTime = (index: number) => {
+    //     setTimes(times.filter((_, i) => i !== index));
+    // };
 
-    const updateTime = (index: number, field: string, value: string) => {
-        const newTimes = [...times];
-        newTimes[index] = {
-            ...newTimes[index],
-            [field]: value
-        };
-        setTimes(newTimes);
-    };
+    // const updateTime = (index: number, field: string, value: string) => {
+    //     const newTimes = [...times];
+    //     newTimes[index] = {
+    //         ...newTimes[index],
+    //         [field]: value
+    //     };
+    //     setTimes(newTimes);
+    // };
 
     return (
         <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">

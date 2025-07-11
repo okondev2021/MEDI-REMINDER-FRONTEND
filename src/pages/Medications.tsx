@@ -3,11 +3,13 @@ import { PlusIcon, PillIcon, ClockIcon, CalendarIcon } from 'lucide-react';
 import AddMedication from '../components/AddMedication';
 import { useAuthContext } from '../context/AuthContextProvider';
 import { collection, getDocs } from 'firebase/firestore';
-import { appDb } from '../lib/firebase';
 import { MedicationProps } from '../lib/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Trash2Icon } from 'lucide-react';
-
+import { deleteDoc, doc } from 'firebase/firestore';
+import { appDb } from '../lib/firebase';
+import { toast } from 'react-toastify';
+import { FirebaseError } from 'firebase/app';
 
 const Medications = () => {
 
@@ -35,9 +37,24 @@ const Medications = () => {
 
     }
 
+    const deleteMedication = async (id: string) => {
+        if (!currentUser?.uid) return;
+        try {
+            const medicationDoc = doc(appDb, "userProfile", currentUser.uid, "medications", id);
+            await deleteDoc(medicationDoc);
+            getMedications();
+
+            toast.success("Medication deleted successfully")
+        }
+        catch (error) {
+            const message = error instanceof FirebaseError ? error.message : "An unexpected error occurred, try again";
+            toast.error(message)
+        }
+    }
+
     useEffect(() => {
         getMedications()
-    }, [getMedications])
+    }, [])
 
     return (
         newMedication ?
@@ -88,10 +105,7 @@ const Medications = () => {
                                                     </div> 
                                                 ))}
                                             </div>
-                                            <p className="mt-1 text-sm text-gray-600">
-                                                {medication.medicationInformation.instructions}
-                                            </p>
-                                            <button className=' mt-3 text-red-600 cursor-pointer'>
+                                            <button onClick={() => deleteMedication(medication.id)} className=' mt-3 text-red-600 cursor-pointer'>
                                                 <Trash2Icon size={20} />
                                             </button>
                                         </div>

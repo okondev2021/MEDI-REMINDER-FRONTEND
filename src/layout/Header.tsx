@@ -12,7 +12,7 @@ const Header = ({ onNotificationClick, setShowSideNav, showSideNav }: { onNotifi
         return displaNameList[0][0].toUpperCase() + displaNameList[1][0].toUpperCase()
     }
 
-    const displayName = currentUser.name
+    const displayName = currentUser?.name
 
 
     return (
