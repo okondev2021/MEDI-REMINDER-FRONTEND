@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import AdherenceStats  from '../components/history/AdherenceStats';
 import MedicationHistoryList  from '../components/history/MedicationHistoryList';
 import { SkeletonLoader } from '../components/common/SkeletonLoader';
