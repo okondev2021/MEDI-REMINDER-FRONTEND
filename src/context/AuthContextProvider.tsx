@@ -88,6 +88,7 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
             pushNotification: userProfile?.pushNotification ?? false,
             timezone: userProfile?.timezone ?? "",
             userType: userProfile?.userType ?? "",
+            fcmToken: userProfile?.fcmToken ?? "",
         }
     }
 

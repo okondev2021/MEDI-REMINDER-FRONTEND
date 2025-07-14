@@ -2,13 +2,13 @@ importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js");
 importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js");
 
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
-  measurementId: "",
+  apiKey: "AIzaSyATQpW8PcQ6pXrKM2n1wELueNfOEljWXzY",
+  authDomain: "medi-remind-25b30.firebaseapp.com",
+  projectId: "medi-remind-25b30",
+  storageBucket: "medi-remind-25b30.firebasestorage.app",
+  messagingSenderId: "1095936882055",
+  appId: "1:1095936882055:web:9d7feca2986adbb3248f22",
+  measurementId: "G-BZLP8HR6F4",
 };
 
 // Initialize Firebase

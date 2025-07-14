@@ -3,6 +3,8 @@
 /.env
 public/firebase-messaging-sw.js
 
+/public/firebase-messaging-sw.js
+
 # Logs
 logs
 *.log

@@ -6,10 +6,9 @@ import { SkeletonLoader } from '../components/common/SkeletonLoader';
 
 const History = () => {
 
-    const [isLoading, setIsLoading] = useState(false);
+    // const [isLoading, setIsLoading] = useState(false);
 
-    // setIsLoading(false);
-
+    const isLoading = false;
 
     if (isLoading) {
         return (
