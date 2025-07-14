@@ -2,46 +2,40 @@ import { getToken } from "firebase/messaging";
 import { doc, setDoc } from "firebase/firestore";
 import { appDb, messaging } from "./firebase";
 
+export const requestNotificationPermission = async (
+  
+  userId: string = "x8DZrkCyi5hCQTHZ06GxMFfCaup2"
 
-// Call this after login, pass user.uid
-export const requestNotificationPermission = async (userId: string) => {
+): Promise<void> => {
   try {
-    const permission = await Notification.requestPermission();
+    
+    try {
+      const fcmToken = await getToken(messaging, {
+        vapidKey: import.meta.env.VITE_VAPID_KEY,
+      });
 
-      if (permission === "granted") {
-          
-        const registration = await navigator.serviceWorker.register(
-          "/firebase-messaging-sw.js"
+      if (fcmToken) {
+        console.log("current token for client: ", fcmToken);
+        // Save token to Firestore
+        await setDoc(
+          doc(appDb, "userProfile", userId),
+          {
+            fcmToken,
+          },
+          { merge: true }
         );
-
-        // Wait until the service worker is fully active and ready to handle push
-        await navigator.serviceWorker.ready;
-
-        const vapidKey = import.meta.env.VITE_VAPID_KEY;
-
-        const fcmToken = await getToken(messaging, {
-          vapidKey,
-          serviceWorkerRegistration: registration,
-        });
-
-        if (fcmToken) {
-          // Save token to Firestore
-          await setDoc(
-            doc(appDb, "userProfile", userId),
-            {
-              fcmToken,
-            },
-            { merge: true }
-          );
-
-          console.log("✅ FCM token saved:");
-        } else {
-          console.warn("⚠️ No FCM token received.");
-        }
+        console.log("✅ FCM token saved:");
       } else {
-      console.warn("🚫 Notification permission denied.");
+        // Show permission request UI
+        console.log(
+          "No registration token available. Request permission to generate one."
+        );
+        console.warn("⚠️ No FCM token received.");
+      }
+    } catch (err) {
+      console.log("An error occurred while retrieving token. ", err);
     }
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("❌ Error getting notification permission:", err);
   }
 };

@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 import { getMessaging } from "firebase/messaging";
 
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
   authDomain: import.meta.env.VITE_AUTH_DOMAIN,
@@ -17,10 +18,12 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const appAuth = getAuth(app);
 const messaging = getMessaging(app);
+
 
 // ✅ Enable single-tab offline persistence
 const appDb = initializeFirestore(app, {
@@ -30,8 +33,4 @@ const appDb = initializeFirestore(app, {
 });
 
 
-
-
-
 export { appAuth, appDb, app, messaging };
-

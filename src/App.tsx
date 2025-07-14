@@ -2,11 +2,20 @@ import { Routes, Route } from "react-router-dom";
 import AuthContextProvider from "./context/AuthContextProvider";
 import AuthWrapper from "./Wrapper/AuthWrapper";
 import MainLayout from "./layout/MainLayout";
-import { Dashboard, HelpPage, Medications, Notifications, Schedule, Settings, FourZeroFour, Login, SignUp, History } from "./pages";
-import { ToastContainer } from "react-toastify";
+import { Dashboard, HelpPage, Medications, Notifications, Schedule, Settings, FourZeroFour, Login, SignUp, History, Notification } from "./pages";
+import { ToastContainer, toast } from "react-toastify";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { messaging } from "./lib/firebase";
+import { onMessage } from "firebase/messaging";
 
 function App() {
+
+  onMessage(messaging, (payload) => {
+    console.log(payload)
+    if (payload.notification?.title || payload.notification?.body) {
+      toast(payload.notification.title ?? payload.notification.body ?? "New notification");
+    }
+  });
 
   return (
     <>
@@ -26,6 +35,7 @@ function App() {
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/settings" element={<Settings />} /> 
           <Route path="/history" element={<History />} />
+          <Route path="/notification" element={<Notification />} />
         </Route>
         {/* AUTH ROUTE */}
         <Route path="/login" element={<Login />} />
