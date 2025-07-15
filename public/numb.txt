@@ -1,0 +1,150 @@
+// importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js");
+// importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js");
+
+// const firebaseConfig = {
+//   apiKey: "%%VITE_API_KEY%%",
+//   authDomain: "%%VITE_AUTH_DOMAIN%%",
+//   projectId: "%%VITE_PROJECT_ID%%",
+//   storageBucket: "%%VITE_STORAGE_BUCKET%%",
+//   messagingSenderId: "%%VITE_MESSAGING_SENDER_ID%%",
+//   appId: "%%VITE_APP_ID%%",
+//   measurementId: "%%VITE_MEASUREMENT_ID%%",
+// };
+
+// // Initialize Firebase
+// firebase.initializeApp(firebaseConfig);
+
+
+// const messaging = firebase.messaging();
+
+
+// // Customized notification handler
+// messaging.onBackgroundMessage((payload) => {
+
+//   console.log(
+//     "[firebase-messaging-sw.js] Received background message:",
+//     payload
+//   );
+
+//   // Customize notification
+//   const notificationTitle = payload.notification?.title || "New Notification";
+//   const notificationOptions = {
+//     body: payload.notification?.body,
+//     icon:
+//       payload.notification?.icon ||
+//       "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
+//     data: payload.data || {},
+//   };
+
+//   return self.registration.showNotification(
+
+//     notificationTitle,
+
+//     notificationOptions
+
+//   );
+
+// });
+
+
+// // click handler for notifications
+// self.addEventListener("notificationclick", (event) => {
+
+//   event.notification.close();
+
+//   // Handle notification click
+//   const urlToOpen = "/schedule";
+
+//   event.waitUntil(
+
+//     clients.matchAll({ type: "window" }).then((windowClients) => {
+//       // Check if there's already a window/tab open with the target URL
+//       for (const client of windowClients) {
+//         if (client.url === urlToOpen && "focus" in client) {
+//           return client.focus();
+//         }
+//       }
+
+//       // If no matching window/tab found, open a new one
+//       if (clients.openWindow) {
+//         return clients.openWindow(urlToOpen);
+//       }
+
+//     })
+
+//   );
+
+// });
+
+
+
+
+
+
+
+
+// importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js");
+// importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js");
+
+// const firebaseConfig = {
+//   apiKey: "%%VITE_API_KEY%%",
+//   authDomain: "%%VITE_AUTH_DOMAIN%%",
+//   projectId: "%%VITE_PROJECT_ID%%",
+//   storageBucket: "%%VITE_STORAGE_BUCKET%%",
+//   messagingSenderId: "%%VITE_MESSAGING_SENDER_ID%%",
+//   appId: "%%VITE_APP_ID%%",
+//   measurementId: "%%VITE_MEASUREMENT_ID%%",
+// };
+
+// firebase.initializeApp(firebaseConfig);
+
+// const messaging = firebase.messaging();
+
+// messaging.onBackgroundMessage((payload) => {
+//   console.log(
+//     "[firebase-messaging-sw.js] Received background message:",
+//     payload
+//   );
+
+//   const notificationTitle = payload.notification?.title || "New Notification";
+
+//   const notificationOptions = {
+//     body: payload.notification?.body,
+//     icon:
+//       payload.notification?.icon ||
+//       "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
+//     vibrate: [300, 100, 400],
+//     data: payload.data || {},
+//     sound: "/alarm.mp3",
+//     // badge: "/badge.png",
+//   };
+
+//   if (payload.data?.alarm === "true") {
+//     options.sound = "/alarm.mp3";
+//   }
+
+//   return self.registration.showNotification(
+//     notificationTitle,
+//     notificationOptions
+//   );
+  
+// });
+
+// self.addEventListener("notificationclick", (event) => {
+//   event.notification.close();
+//   const urlToOpen = "/schedule";
+
+//   event.waitUntil(
+//     clients.matchAll({ type: "window" }).then((windowClients) => {
+//       for (const client of windowClients) {
+//         if (client.url === urlToOpen && "focus" in client) {
+//           return client.focus();
+//         }
+//       }
+//       if (clients.openWindow) {
+//         return clients.openWindow(urlToOpen);
+//       }
+//     })
+//   );
+// });
+

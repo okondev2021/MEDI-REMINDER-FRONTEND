@@ -11,11 +11,31 @@ import { onMessage } from "firebase/messaging";
 function App() {
 
   onMessage(messaging, (payload) => {
-    console.log(payload)
+    console.log("📥 Foreground FCM:", payload);
+
+    // ✅ Show toast
     if (payload.notification?.title || payload.notification?.body) {
       toast(payload.notification.title ?? payload.notification.body ?? "New notification");
     }
+
+    // ✅ Play alarm sound (looping)
+    try {
+      const audio = new Audio("/alarm.mp3");
+      audio.loop = true;
+      audio.play().catch((e) => {
+        console.warn("🔇 Audio playback was blocked by the browser:", e);
+      });
+    } catch (e) {
+      console.error("❌ Failed to play alarm sound:", e);
+    }
+
+    // ✅ Trigger vibration
+    if ("vibrate" in navigator) {
+      navigator.vibrate([300, 100, 400]);
+    }
   });
+
+
 
   return (
     <>

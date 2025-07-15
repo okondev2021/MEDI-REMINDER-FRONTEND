@@ -1,9 +1,6 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 
-
-
 // Configurable parameters
-
 const CONFIG = {
   schedule: "every 2 minutes",
   timeZone: "UTC",
@@ -18,7 +15,6 @@ const CONFIG = {
 
 
 // DOSE NOTIFICATION
-
 export const notifyUpcomingDoses = onSchedule(
   {
     schedule: CONFIG.schedule,
@@ -119,11 +115,20 @@ export const notifyUpcomingDoses = onSchedule(
                 title: "💊 Medication Reminder",
                 body: `It's time to take your ${medicationName}`,
               },
+              webpush: {
+                notification: {
+                  icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
+                  vibrate: [300, 100, 400],
+                  sound: "/alarm.mp3",
+                  // badge: "/badge.png",
+                },
+              },
               data: {
                 userId,
                 medId,
                 doseId: doseDoc.id,
                 time: doseDateTime.toISO() ?? "",
+                alarm: "true",
               },
             });
 
@@ -149,8 +154,7 @@ export const notifyUpcomingDoses = onSchedule(
   }
 );
 
-
-
+// MARK MISSED DOSES
 export const markMissedDoses = onSchedule(
   
   {

@@ -11,67 +11,65 @@ const firebaseConfig = {
   measurementId: "%%VITE_MEASUREMENT_ID%%",
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-
-
 const messaging = firebase.messaging();
 
-
-// Customized notification handler
 messaging.onBackgroundMessage((payload) => {
+  console.log("[firebase-messaging-sw.js] Received background message:", payload);
 
-  console.log(
-    "[firebase-messaging-sw.js] Received background message:",
-    payload
-  );
-
-  // Customize notification
   const notificationTitle = payload.notification?.title || "New Notification";
+  const notificationBody = payload.notification?.body || "";
+  
+  // Notification options with both vibration and sound
   const notificationOptions = {
-    body: payload.notification?.body,
+    body: notificationBody,
     icon:
       payload.notification?.icon ||
       "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
+    vibrate: [300, 100, 400], // Vibration pattern (ms)
     data: payload.data || {},
+    requireInteraction: true, // Keep notification visible until dismissed
+    actions: [
+      { action: "open", title: "Open App" },
+      { action: "dismiss", title: "Dismiss" },
+    ],
   };
 
+  // Add sound if alarm is requested
+  if (payload.data?.alarm === "true") {
+    notificationOptions.sound = "/alarm.mp3"; // Path to your sound file
+  }
+
   return self.registration.showNotification(
-
     notificationTitle,
-
     notificationOptions
-
   );
-
 });
 
-
-// click handler for notifications
+// Handle notification click
 self.addEventListener("notificationclick", (event) => {
-
   event.notification.close();
-
-  // Handle notification click
-  const urlToOpen = "/schedule";
-
-  event.waitUntil(
-
-    clients.matchAll({ type: "window" }).then((windowClients) => {
-      // Check if there's already a window/tab open with the target URL
-      for (const client of windowClients) {
-        if (client.url === urlToOpen && "focus" in client) {
-          return client.focus();
+  
+  const urlToOpen = new URL("/schedule", self.location.origin).href;
+  
+  // Handle different notification actions
+  if (event.action === "open") {
+    event.waitUntil(
+      clients.matchAll({ type: "window" }).then((windowClients) => {
+        const matchingClient = windowClients.find(
+          (client) => client.url === urlToOpen
+        );
+        if (matchingClient) {
+          return matchingClient.focus();
         }
-      }
-
-      // If no matching window/tab found, open a new one
-      if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
-      }
+      })
+    );
+  }
+  // "dismiss" action requires no additional handling
+});
 
-    })
-
-  );
-
+// Optional: Handle notification close
+self.addEventListener("notificationclose", (event) => {
+  console.log("Notification was dismissed", event.notification);
 });
