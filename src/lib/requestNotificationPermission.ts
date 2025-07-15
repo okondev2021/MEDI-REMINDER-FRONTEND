@@ -4,7 +4,7 @@ import { appDb, messaging } from "./firebase";
 
 export const requestNotificationPermission = async (
   
-  userId: string = "x8DZrkCyi5hCQTHZ06GxMFfCaup2"
+  userId:string
 
 ): Promise<void> => {
   try {
