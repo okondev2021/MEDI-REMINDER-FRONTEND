@@ -9,9 +9,9 @@ const manifestForPlugIn: Partial<VitePWAOptions> = {
   registerType: "autoUpdate",
   includeAssets: ["favicon.ico", "apple-touc-icon.png", "masked-icon.svg"],
   manifest: {
-    name: "React-vite-app",
-    short_name: "react-vite-app",
-    description: "I am a simple vite app",
+    name: "MediRemind",
+    short_name: "MediRemind",
+    description: "Remind, Track, and Stay Medically Adherent.",
     icons: [
       {
         purpose: "maskable",
@@ -26,8 +26,8 @@ const manifestForPlugIn: Partial<VitePWAOptions> = {
         type: "image/png",
       },
     ],
-    theme_color: "#171717",
-    background_color: "#f0e7db",
+    background_color: "#ffffff",
+    theme_color: "#4f46e5",
     display: "standalone",
     scope: "/",
     start_url: "/",
