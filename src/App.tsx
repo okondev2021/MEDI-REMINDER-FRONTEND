@@ -21,7 +21,7 @@ function App() {
 
     // ✅ Play alarm sound (looping)
     try {
-      const audio = new Audio("/alarm.mp3");
+      const audio = new Audio("https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3");
       audio.loop = true;
       audio.play().catch((e) => {
         console.warn("🔇 Audio playback was blocked by the browser:", e);

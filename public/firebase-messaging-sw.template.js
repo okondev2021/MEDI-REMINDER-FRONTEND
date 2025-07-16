@@ -30,11 +30,12 @@ messaging.onBackgroundMessage((payload) => {
     icon:
       payload.notification?.icon ||
       "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
-    vibrate: [300, 100, 400], // Vibration pattern (ms)
+    vibrate: [300, 100, 400],
     data: payload.data || {},
-    requireInteraction: true, // Keep notification visible until dismissed
+    requireInteraction: true,
+    badge:
+      "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
     actions: [
-      // ✅ adds actionable buttons
       {
         action: "take",
         title: "✅ Take",
@@ -49,11 +50,14 @@ messaging.onBackgroundMessage((payload) => {
   // Play sound if alarm is requested
   if (payload.data?.alarm === "true") {
     // Method 1: Using the Web Notifications API sound property (works in some browsers)
-    notificationOptions.sound = "/alarm.mp3";
+    notificationOptions.sound =
+      "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3";
 
     // Method 2: Directly play the audio (more reliable cross-browser)
     self.registration.getNotifications().then(() => {
-      const audio = new Audio("/alarm.mp3");
+      const audio = new Audio(
+        "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3"
+      );
       audio.play().catch((e) => console.log("Audio play failed:", e));
     });
   }

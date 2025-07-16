@@ -119,8 +119,10 @@ export const notifyUpcomingDoses = onSchedule(
                 notification: {
                   icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
                   vibrate: [300, 100, 400],
-                  sound: "/alarm.mp3",
-                  // badge: "/badge.png",
+                  sound:
+                    "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3",
+                  badge:
+                    "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
                 },
               },
               data: {
