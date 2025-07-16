@@ -73,7 +73,7 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   
-  const urlToOpen = new URL("/schedule", self.location.origin).href;
+  const urlToOpen = new URL("/", self.location.origin).href;
   
   // Handle different notification actions
   if (event.action === "take") {
