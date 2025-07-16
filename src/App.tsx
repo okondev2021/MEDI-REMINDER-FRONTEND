@@ -11,6 +11,7 @@ import { onMessage } from "firebase/messaging";
 function App() {
 
   onMessage(messaging, (payload) => {
+
     console.log("📥 Foreground FCM:", payload);
 
     // ✅ Show toast
@@ -25,7 +26,8 @@ function App() {
       audio.play().catch((e) => {
         console.warn("🔇 Audio playback was blocked by the browser:", e);
       });
-    } catch (e) {
+    }
+    catch (e) {
       console.error("❌ Failed to play alarm sound:", e);
     }
 
@@ -33,6 +35,7 @@ function App() {
     if ("vibrate" in navigator) {
       navigator.vibrate([300, 100, 400]);
     }
+
   });
 
 

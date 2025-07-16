@@ -1,4 +1,3 @@
-
 importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js");
 importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js");
 
@@ -13,14 +12,18 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log("[firebase-messaging-sw.js] Received background message:", payload);
+  console.log(
+    "[firebase-messaging-sw.js] Received background message:",
+    payload
+  );
 
   const notificationTitle = payload.notification?.title || "New Notification";
   const notificationBody = payload.notification?.body || "";
-  
+
   // Notification options with both vibration and sound
   const notificationOptions = {
     body: notificationBody,
@@ -31,20 +34,35 @@ messaging.onBackgroundMessage((payload) => {
     data: payload.data || {},
     requireInteraction: true, // Keep notification visible until dismissed
     actions: [
-      { action: "open", title: "Open App" },
-      { action: "dismiss", title: "Dismiss" },
+      // ✅ adds actionable buttons
+      {
+        action: "take",
+        title: "✅ Take",
+      },
+      {
+        action: "snooze",
+        title: "⏰ Snooze",
+      },
     ],
   };
 
-  // Add sound if alarm is requested
+  // Play sound if alarm is requested
   if (payload.data?.alarm === "true") {
-    notificationOptions.sound = "/alarm.mp3"; // Path to your sound file
+    // Method 1: Using the Web Notifications API sound property (works in some browsers)
+    notificationOptions.sound = "/alarm.mp3";
+
+    // Method 2: Directly play the audio (more reliable cross-browser)
+    self.registration.getNotifications().then(() => {
+      const audio = new Audio("/alarm.mp3");
+      audio.play().catch((e) => console.log("Audio play failed:", e));
+    });
   }
 
   return self.registration.showNotification(
     notificationTitle,
     notificationOptions
   );
+  
 });
 
 // Handle notification click
@@ -54,7 +72,7 @@ self.addEventListener("notificationclick", (event) => {
   const urlToOpen = new URL("/schedule", self.location.origin).href;
   
   // Handle different notification actions
-  if (event.action === "open") {
+  if (event.action === "take") {
     event.waitUntil(
       clients.matchAll({ type: "window" }).then((windowClients) => {
         const matchingClient = windowClients.find(

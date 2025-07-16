@@ -113,7 +113,7 @@ export const notifyUpcomingDoses = onSchedule(
               token: fcmToken,
               notification: {
                 title: "💊 Medication Reminder",
-                body: `It's time to take your ${medicationName}`,
+                body: `It's time to take your medication: ${medicationName}`,
               },
               webpush: {
                 notification: {
