@@ -116,13 +116,28 @@ export const notifyUpcomingDoses = onSchedule(
                 body: `It's time to take your medication: ${medicationName}`,
               },
               webpush: {
+                headers: {
+                  Urgency: "high",
+                },
                 notification: {
-                  icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
+                  icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
                   vibrate: [300, 100, 400],
                   sound:
                     "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3",
                   badge:
-                    "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
+                    "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
+                  requireInteraction: true,
+                  actions: [
+                    {
+                      action: "taken",
+                      title: "Mark as Taken",
+                    },
+                    {
+                      action: "snooze",
+                      title: "Snooze 10min",
+                    },
+                  ],
+                  tag: "alarm",
                 },
               },
               data: {

@@ -16,6 +16,7 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
+
   console.log(
     "[firebase-messaging-sw.js] Received background message:",
     payload
@@ -29,12 +30,12 @@ messaging.onBackgroundMessage((payload) => {
     body: notificationBody,
     icon:
       payload.notification?.icon ||
-      "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
+      "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
     vibrate: [300, 100, 400],
     data: payload.data || {},
     requireInteraction: true,
     badge:
-      "https://res.cloudinary.com/dcpbyncni/image/upload/v1751623295/SECONDARY_k2xftp.png",
+      "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
     actions: [
       {
         action: "take",
@@ -69,30 +70,119 @@ messaging.onBackgroundMessage((payload) => {
   
 });
 
-// Handle notification click
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  
-  const urlToOpen = new URL("/", self.location.origin).href;
-  
-  // Handle different notification actions
-  if (event.action === "take") {
-    event.waitUntil(
-      clients.matchAll({ type: "window" }).then((windowClients) => {
-        const matchingClient = windowClients.find(
-          (client) => client.url === urlToOpen
-        );
-        if (matchingClient) {
-          return matchingClient.focus();
-        }
-        return clients.openWindow(urlToOpen);
-      })
-    );
-  }
-  // "dismiss" action requires no additional handling
+
+// self.addEventListener("push", function (event) {
+
+//   console.log("[SW] Push event received manually:", event);
+
+//   let payload = {};
+//   try {
+//     payload = event.data.json();
+//   } catch (e) {
+//     console.error("Error parsing push payload:", e);
+//   }
+
+//   const notificationTitle = payload.notification?.title || "New Notification";
+//   const notificationOptions = {
+//     body: payload.notification?.body || "",
+//     icon:
+//       payload.notification?.icon ||
+//       "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
+//     vibrate: [300, 100, 400],
+//     data: payload.data || {},
+//     requireInteraction: true,
+//     badge:
+//       "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
+//     actions: [
+//       {
+//         action: "take",
+//         title: "✅ Take",
+//       },
+//       {
+//         action: "snooze",
+//         title: "⏰ Snooze",
+//       },
+//     ],
+//   };
+
+//   if (payload.data?.alarm === "true") {
+//     notificationOptions.sound =
+//       "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3";
+//   }
+
+//   event.waitUntil(
+//     self.registration.showNotification(notificationTitle, notificationOptions)
+//       .then(() => {
+//       const audio = new Audio(
+//         "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3"
+//       );
+//       audio.play().catch((e) => console.log("Audio play failed:", e));
+//     })
+//   );
+// });
+
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
 });
 
-// Optional: Handle notification close
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+
+self.addEventListener('notificationclick', function (event) {
+  
+  event.notification.close();
+
+  const { medicationId, doseId } = event.notification.data || {};
+
+  const targetUrl = `/?alarm=true&medicationId=${medicationId}&doseId=${doseId}`;
+
+  if (event.action === "take") {
+    event.waitUntil(
+      clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then(function (clientList) {
+          for (const client of clientList) {
+            if (client.url === "/" && "focus" in client) {
+              client.navigate(targetUrl);
+              return client.focus();
+            }
+          }
+        })
+    );
+  }
+});
+
+
 self.addEventListener("notificationclose", (event) => {
   console.log("Notification was dismissed", event.notification);
 });
+
+
+
+
+// // Handle notification click
+// self.addEventListener("notificationclick", (event) => {
+//   event.notification.close();
+  
+//   const urlToOpen = new URL("/", self.location.origin).href;
+  
+//   // Handle different notification actions
+//   if (event.action === "take") {
+//     event.waitUntil(
+//       clients.matchAll({ type: "window" }).then((windowClients) => {
+//         const matchingClient = windowClients.find(
+//           (client) => client.url === urlToOpen
+//         );
+//         if (matchingClient) {
+//           return matchingClient.focus();
+//         }
+//         return clients.openWindow(urlToOpen);
+//       })
+//     );
+//   }
+
+// });
