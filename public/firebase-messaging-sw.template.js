@@ -1,6 +1,7 @@
 importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js");
 importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js");
 
+
 const firebaseConfig = {
   apiKey: "%%VITE_API_KEY%%",
   authDomain: "%%VITE_AUTH_DOMAIN%%",
@@ -11,9 +12,12 @@ const firebaseConfig = {
   measurementId: "%%VITE_MEASUREMENT_ID%%",
 };
 
+
 firebase.initializeApp(firebaseConfig);
 
+
 const messaging = firebase.messaging();
+
 
 messaging.onBackgroundMessage((payload) => {
 
@@ -71,57 +75,6 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 
-// self.addEventListener("push", function (event) {
-
-//   console.log("[SW] Push event received manually:", event);
-
-//   let payload = {};
-//   try {
-//     payload = event.data.json();
-//   } catch (e) {
-//     console.error("Error parsing push payload:", e);
-//   }
-
-//   const notificationTitle = payload.notification?.title || "New Notification";
-//   const notificationOptions = {
-//     body: payload.notification?.body || "",
-//     icon:
-//       payload.notification?.icon ||
-//       "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
-//     vibrate: [300, 100, 400],
-//     data: payload.data || {},
-//     requireInteraction: true,
-//     badge:
-//       "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
-//     actions: [
-//       {
-//         action: "take",
-//         title: "✅ Take",
-//       },
-//       {
-//         action: "snooze",
-//         title: "⏰ Snooze",
-//       },
-//     ],
-//   };
-
-//   if (payload.data?.alarm === "true") {
-//     notificationOptions.sound =
-//       "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3";
-//   }
-
-//   event.waitUntil(
-//     self.registration.showNotification(notificationTitle, notificationOptions)
-//       .then(() => {
-//       const audio = new Audio(
-//         "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3"
-//       );
-//       audio.play().catch((e) => console.log("Audio play failed:", e));
-//     })
-//   );
-// });
-
-
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -161,28 +114,3 @@ self.addEventListener("notificationclose", (event) => {
   console.log("Notification was dismissed", event.notification);
 });
 
-
-
-
-// // Handle notification click
-// self.addEventListener("notificationclick", (event) => {
-//   event.notification.close();
-  
-//   const urlToOpen = new URL("/", self.location.origin).href;
-  
-//   // Handle different notification actions
-//   if (event.action === "take") {
-//     event.waitUntil(
-//       clients.matchAll({ type: "window" }).then((windowClients) => {
-//         const matchingClient = windowClients.find(
-//           (client) => client.url === urlToOpen
-//         );
-//         if (matchingClient) {
-//           return matchingClient.focus();
-//         }
-//         return clients.openWindow(urlToOpen);
-//       })
-//     );
-//   }
-
-// });

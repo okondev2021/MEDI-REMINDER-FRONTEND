@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import NotificationsModal from "./NotificationsModal";
+import AddCareGiver from "@/components/AddCareGiver";
 
 const MainLayout = () => {
 
@@ -10,9 +11,11 @@ const MainLayout = () => {
 
     const [showSideNav, setShowSideNav] = useState(window.innerWidth > 640 ? true : false)
 
+    const [caregiver, setCaregiver] = useState(false);
+
     return (
         <div className="flex w-full bg-gray-50 relative">
-            <Sidebar setShowSideNav={setShowSideNav} showSideNav={showSideNav} />
+            <Sidebar setShowSideNav={setShowSideNav} showSideNav={showSideNav} setCaregiver={setCaregiver} />
             <div className="flex flex-col flex-1 md:ml-[20%]">
                 {showSideNav && <div className='absolute z-[60] top-0 left-0 bg-black/50 w-full h-full min-h-screen md:hidden'></div>}
                 <div className="relative">
@@ -25,6 +28,9 @@ const MainLayout = () => {
                     )}
                 </div>
                 <main className="flex-1 p-6 mt-20">
+                    {/* MODAL CONTENT */}
+                    {caregiver && <AddCareGiver onClose={() => setCaregiver(false)} />}
+                    {/*MAIN CONTENT*/}
                     <Outlet />
                 </main>
             </div>

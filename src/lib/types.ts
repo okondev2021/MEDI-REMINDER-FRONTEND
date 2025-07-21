@@ -1,5 +1,18 @@
 import { Timestamp } from "firebase/firestore";
 
+export const USER_ROLES = {
+  PATIENT: "patient",
+  CAREGIVER: "caregiver",
+  BLANK: "",
+} as const;
+
+export type UserType = (typeof USER_ROLES)[keyof typeof USER_ROLES];
+
+
+interface roleInfo {
+  email: string;
+  uid: string;
+}
 export interface UserProfile {
   birthDate: string;
   dateJoined: Timestamp;
@@ -8,8 +21,10 @@ export interface UserProfile {
   notificationReminderTiming: number;
   pushNotification: boolean;
   timezone: string;
-  userType: string;
+  userType: UserType;
   fcmToken: string;
+  patients?: roleInfo;
+  caregivbers?: roleInfo;
 }
 
 export interface MedicationInfo {
@@ -18,6 +33,7 @@ export interface MedicationInfo {
   instruction: string;
   strength: string;
 }
+
 
 export interface GenerateMonthlyDosesParams {
   startDate: string; // "YYYY-MM-DD"
@@ -43,6 +59,7 @@ export interface MedicationProps {
   status: string;
 }
 
+
 export interface DosesScheduleProps {
   id?: string;
   userId: string;
@@ -60,7 +77,21 @@ export interface DosesScheduleProps {
   lastNotifiedAt: Timestamp | null;
 }
 
+
 export interface GroupedDosesProps {
   time: string;
   medications: DosesScheduleProps[];
 }
+
+
+export interface CareGiverInvitations {
+  id: string;
+  caregiverEmail: string;
+  patientId: string;
+  patientEmail: string
+  request_accepted: boolean;
+  createdAt: Timestamp;
+  expiresAt: Timestamp;
+}
+
+

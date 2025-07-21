@@ -2,12 +2,13 @@ import {
   GenerateMonthlyDosesParams,
   DosesScheduleProps,
   GroupedDosesProps,
+  UserProfile
 } from "./types";
 import { DateTime } from "luxon";
 import { appDb } from "./firebase";
 import { toast } from "react-toastify";
 
-import { doc, updateDoc, Timestamp } from "firebase/firestore";
+import { doc, updateDoc, Timestamp, getDoc } from "firebase/firestore";
 
 /**
  * Generates a list of doses for a month based on the provided parameters.
@@ -236,6 +237,40 @@ export const markDoseAsTaken = async (
   }
   catch (error) {
     toast.error(`Error marking dose as taken: ${error}`);
+  }
+};
+
+
+
+export const fetchPatientTimezone = async (caregiverProfile: UserProfile) => {
+
+  try {
+    const patientUid = caregiverProfile.patients?.uid;
+
+    if (!patientUid) {
+      toast.error("No patient associated with this caregiver.");
+      return null;
+    }
+
+    const patientDocRef = doc(appDb, "userProfile", patientUid);
+
+    const patientDocSnap = await getDoc(patientDocRef);
+
+    if (!patientDocSnap.exists()) {
+      toast.error("Patient not found.");
+      return null;
+    }
+
+    const patientData = patientDocSnap.data() as UserProfile;
+
+    const timezone = patientData.timezone;
+
+    return timezone;
+
+  }
+  catch (error) {
+    toast.error(`Error fetching patient timezone: ${String(error)}`);
+    return null;
   }
 };
 

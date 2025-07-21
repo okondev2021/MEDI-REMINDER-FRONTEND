@@ -1,17 +1,33 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { fetch } from "undici";
+import { defineSecret } from "firebase-functions/params";
+
 
 // Configurable parameters
 const CONFIG = {
   schedule: "every 2 minutes",
   timeZone: "UTC",
   missedDoseThresholdHours: 4,
-  maxUsersPerRun: 500,
-  batchMaxOperations: 500, 
+  batchMaxOperations: 500,
   // 
   notifyCooldownMins: 4, 
   timeWindowMins: [-15, -10, -5, 0, 5, 10],
 };
 
+
+// 
+type SendMissedDoseEmailParams = {
+  toEmail: string;
+  firstName: string;
+  caregiver?: string;
+  medicationName: string;
+  scheduledTime: string;
+  forCaregiver: boolean;
+};
+
+
+// 
+const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
 
 
 // DOSE NOTIFICATION
@@ -39,7 +55,7 @@ export const notifyUpcomingDoses = onSchedule(
     const start = Date.now();
     const usersSnapshot = await db
       .collection("userProfile")
-      .limit(CONFIG.maxUsersPerRun)
+      .limit(CONFIG.batchMaxOperations)
       .get();
 
     console.log(`🔍 Scanning ${usersSnapshot.size} users`);
@@ -127,16 +143,16 @@ export const notifyUpcomingDoses = onSchedule(
                   badge:
                     "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
                   requireInteraction: true,
-                  actions: [
-                    {
-                      action: "taken",
-                      title: "Mark as Taken",
-                    },
-                    {
-                      action: "snooze",
-                      title: "Snooze 10min",
-                    },
-                  ],
+                     actions: [
+                      {
+                        action: "take",
+                        title: "✅ Take",
+                      },
+                      {
+                        action: "snooze",
+                        title: "⏰ Snooze",
+                      },
+                    ],
                   tag: "alarm",
                 },
               },
@@ -171,6 +187,94 @@ export const notifyUpcomingDoses = onSchedule(
   }
 );
 
+
+// 
+const CaregiverMissedDoseHtml = ({
+  firstName,
+  caregiver,
+  medicationName,
+  scheduledTime,
+  forCaregiver,
+}: {
+  firstName: string;
+  caregiver?: string;
+  medicationName: string;
+  scheduledTime: string;
+  forCaregiver: boolean;
+  }) => {
+  return forCaregiver
+    ? `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Missed Medication Alert</h2>
+        <p>Hello ${caregiver},</p>
+        <p>This is to inform you that <strong>${firstName}</strong> missed their scheduled dose of <strong>${medicationName}</strong> at <strong>${scheduledTime}</strong>.</p>
+        <p>Please consider checking in on them to ensure everything is okay and assist if needed.</p>
+        <p>Your care makes a difference.<br>— The MediRemind Team</p>
+        <hr style="border: none; border-top: 1px solid #ccc; margin-top: 20px;">
+        <small style="color: #888;">This is an automated message. Please do not reply directly to this email.</small>
+      </div>
+
+    `
+    : `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2 style="color: #d9534f;">Missed Dose Alert</h2>
+        <p>Hi ${firstName},</p>
+        <p>We noticed you missed your scheduled dose of <strong>${medicationName}</strong> at <strong>${scheduledTime}</strong>.</p>
+        <p>Your health is important to us. Please take your medication as soon as possible unless advised otherwise by your healthcare provider.</p>
+        <p>If you've already taken the dose, you can update this in the MediRemind app.</p>
+        <p style="margin-top: 1.2em;">Stay safe and take care,</p>
+        <p>Your care makes a difference.<br>— The MediRemind Team</p>
+        <hr style="border: none; border-top: 1px solid #ccc; margin-top: 20px;">
+        <small style="color: #888;">This is an automated message. Please do not reply directly to this email.</small>
+      </div>
+  `;
+}
+
+
+// 
+const sendMissedDoseEmail = async ({
+  toEmail,
+  firstName,
+  caregiver,
+  medicationName,
+  scheduledTime,
+  forCaregiver,
+}: SendMissedDoseEmailParams) => {
+  const html = CaregiverMissedDoseHtml({
+    firstName,
+    caregiver,
+    medicationName,
+    scheduledTime,
+    forCaregiver,
+  });
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${RESEND_API_KEY.value()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "MediRemind <onboarding@resend.dev>",
+      to: toEmail,
+      subject: "Missed Medication Alert",
+      html: html,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    console.error("Send failed:", result);
+    throw new Error("Email failed to send");
+  } else {
+    console.log("Email sent successfully:");
+  }
+
+  return { success: true, result };
+};
+
+
 // MARK MISSED DOSES
 export const markMissedDoses = onSchedule(
   
@@ -184,12 +288,14 @@ export const markMissedDoses = onSchedule(
     const { initializeApp, getApps } = await import("firebase-admin/app");
     const { getFirestore } = await import("firebase-admin/firestore");
     const { DateTime } = await import("luxon");
+    const {getAuth} = await import("firebase-admin/auth");
 
     if (!getApps().length) {
       initializeApp();
     }
     const startTime = Date.now();
     const db = getFirestore();
+    const auth = getAuth();
     let totalMarked = 0;
     let batch = db.batch();
     let batchOperations = 0;
@@ -200,7 +306,7 @@ export const markMissedDoses = onSchedule(
 
       const usersSnapshot = await db
         .collection("userProfile")
-        .limit(CONFIG.maxUsersPerRun)
+        .limit(CONFIG.batchMaxOperations)
         .get();
 
       console.log(`🔍 Found ${usersSnapshot.size} users to process`);
@@ -246,6 +352,59 @@ export const markMissedDoses = onSchedule(
 
             if (doseDateTime <= thresholdTime) {
               batch.update(doseDoc.ref, { missed: true });
+
+              // Only send if caregiver email exists
+
+              const caregiverEmail = userData?.caregivers.email;
+
+              if (caregiverEmail) {
+
+                // get caregiver auth info
+                const caregiverRecord = await auth.getUser(userData?.caregivers?.uid || "");
+                const caregiverDisplayName = caregiverRecord.displayName;
+
+                // get user auth info
+                const patientRecord = await auth.getUser(userDoc.id || "");
+                const patientDisplayName = patientRecord.displayName;
+                
+                try {
+                  // notify caregiver
+                  const formattedTime = doseDateTime.toFormat("fff");
+                  await sendMissedDoseEmail({
+                    toEmail: caregiverEmail,
+                    firstName: patientDisplayName || "User",
+                    caregiver: caregiverDisplayName || "Caregiver",
+                    medicationName:
+                      medDoc.data()?.medicationInformation?.name ||
+                      "Medication",
+                    scheduledTime: formattedTime,
+                    forCaregiver: true
+                  });
+
+                  // notify patient
+                  await sendMissedDoseEmail({
+                    toEmail: caregiverEmail,
+                    firstName: patientDisplayName || "User",
+                    medicationName:
+                      medDoc.data()?.medicationInformation
+                        ?.name || "Medication",
+                    scheduledTime: formattedTime,
+                    forCaregiver: false,
+                  });
+
+                  console.log(
+                    `📧 Sent missed dose alert to caregiver successfully for dose`
+                  );
+                }
+                catch (err) {
+                  console.error(
+                    `Failed to send email for dose ${doseDoc.id}:`,
+                    err
+                  );
+                }
+              }
+              // end of email
+
               batchOperations++;
               totalMarked++;
 
@@ -282,9 +441,4 @@ export const markMissedDoses = onSchedule(
   }
 
 );
-
-
-
-
-
 

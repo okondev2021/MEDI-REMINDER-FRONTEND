@@ -13,15 +13,17 @@ import {
 import { DosesScheduleProps, GroupedDosesProps } from '@/lib/types';
 import { groupMedicationHistoryByDate } from '@/lib/mediRemindUtils';
 import { DateTime } from 'luxon';
+import { fetchPatientTimezone } from '@/lib/mediRemindUtils';
 
 
 
-const MedicationHistoryList = () => {
+const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean}) => {
 
     const { currentUser, userProfileInfo } = useAuthContext();
 
+    const [timeZone, setTimeZone] = useState("")
 
-    const now = DateTime.local().setZone(userProfileInfo?.timezone).startOf('day');
+    const now = DateTime.local().setZone(timeZone).startOf('day');
 
 
     const yesterday = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
@@ -33,16 +35,18 @@ const MedicationHistoryList = () => {
     const getFullMedicationHistory = async () => {
 
         // Get the current local time from end of the day in the user's timezone
-        const currentLocalTime = DateTime.now().setZone(userProfileInfo?.timezone).endOf('day') ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const currentLocalTime = DateTime.now().setZone(timeZone).endOf('day') ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         const q = query(
             collectionGroup(appDb, 'doses'),
-            where('userId', '==', currentUser?.uid),
+            where('userId', '==', caregiver ? userProfileInfo?.patients?.uid : currentUser?.uid),
             where('Timestamp', '<=', Timestamp.fromDate(currentLocalTime.toUTC().toJSDate())),
             orderBy('Timestamp', 'desc'),
         );
 
         const doses = await getDocs(q);
+
+        console.log(doses, caregiver ? userProfileInfo?.patients?.uid : currentUser?.uid)
 
         const dosesList = doses.docs.map(dose => (
             {
@@ -52,17 +56,26 @@ const MedicationHistoryList = () => {
         ));
 
 
-        (userProfileInfo?.timezone && setMedicationHistory(groupMedicationHistoryByDate(dosesList, userProfileInfo?.timezone)))
+        (timeZone && setMedicationHistory(groupMedicationHistoryByDate(dosesList, timeZone)))
     }
-
 
     useEffect(() => {
         if (!userProfileInfo?.timezone) {
-            return;
+            const timeZoneFunc = async () => {
+                if (userProfileInfo) {
+                    const patientTimezone = await fetchPatientTimezone(userProfileInfo);
+                    setTimeZone(patientTimezone ?? "");
+                }
+            }
+
+            timeZoneFunc()
+        }
+        else {
+            setTimeZone(userProfileInfo?.timezone ?? "")
         }
         getFullMedicationHistory();
 
-    }, [userProfileInfo?.timezone])
+    }, [timeZone])
 
     const [expandedDates, setExpandedDates] = useState<string[]>([]);
 
@@ -103,8 +116,8 @@ const MedicationHistoryList = () => {
             {/*  */}
             <div className="divide-y divide-gray-200">
                 {(medicationHistory?.length ?? 0) < 1 && (
-                    <div className=' p-2'>
-                        <p className="mt-3 text-sm text-gray-600">History is empty, add a medication to get started</p>
+                    <div className=' p-4'>
+                        <p className="text-base font-bold text-gray-600 text-center">{caregiver ? "No medication logs found yet. Once they start tracking their meds, you'll see them here" : "History is empty, add a medication to get started"}</p>
                     </div>
                 )}
                 {medicationHistory?.map(day => (

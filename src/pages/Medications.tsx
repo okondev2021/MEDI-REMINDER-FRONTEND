@@ -44,7 +44,7 @@ const Medications = () => {
             await deleteDoc(medicationDoc);
             getMedications();
 
-            toast.success("Medication deleted successfully")
+            toast.success("Medication deleted successfully");
         }
         catch (error) {
             const message = error instanceof FirebaseError ? error.message : "An unexpected error occurred, try again";

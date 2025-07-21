@@ -9,3 +9,5 @@ export { default as Login } from "./SignIn";
 export { default as SignUp } from "./SignUp";
 export { default as History } from "./History";
 export { default as Notification } from "./Notification";
+export { default as CaregiverInvite } from "./CaregiverInvite";
+export { default as NotAuthorized } from "./NotAuthorized";

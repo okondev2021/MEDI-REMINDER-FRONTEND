@@ -6,8 +6,6 @@ import { doc, getDoc } from "firebase/firestore";
 import { Timestamp } from "firebase/firestore";
 import { UserProfile } from "@/lib/types";
 
-
-
 interface contextProps {
     loading: boolean;
     currentUser: {
@@ -19,7 +17,6 @@ interface contextProps {
 }
 
 export const AuthContext = createContext<contextProps | undefined>(undefined);
-
 
 const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
@@ -33,6 +30,7 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     const getUserProfile = async (uid: string) => {
         // get userprofile information
         const userProfileDocRef = doc(appDb, "userProfile", uid);
+        
         const userProfile = await getDoc(userProfileDocRef);
 
         if (!userProfile.exists()) {
@@ -89,6 +87,8 @@ const AuthContextProvider = ({ children }: { children: ReactNode }) => {
             timezone: userProfile?.timezone ?? "",
             userType: userProfile?.userType ?? "",
             fcmToken: userProfile?.fcmToken ?? "",
+            caregivers: userProfile?.caregivers ?? undefined,
+            patients: userProfile?.patients ?? undefined
         }
     }
 
