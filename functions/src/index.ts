@@ -370,6 +370,7 @@ export const markMissedDoses = onSchedule(
                 try {
                   // notify caregiver
                   const formattedTime = doseDateTime.toFormat("fff");
+
                   await sendMissedDoseEmail({
                     toEmail: caregiverEmail,
                     firstName: patientDisplayName || "User",
@@ -382,8 +383,9 @@ export const markMissedDoses = onSchedule(
                   });
 
                   // notify patient
+                  console.log(patientRecord.email, patientRecord);
                   await sendMissedDoseEmail({
-                    toEmail: caregiverEmail,
+                    toEmail: patientRecord.email || "",
                     firstName: patientDisplayName || "User",
                     medicationName:
                       medDoc.data()?.medicationInformation
@@ -395,6 +397,7 @@ export const markMissedDoses = onSchedule(
                   console.log(
                     `📧 Sent missed dose alert to caregiver successfully for dose`
                   );
+
                 }
                 catch (err) {
                   console.error(
