@@ -143,22 +143,24 @@ export const notifyUpcomingDoses = onSchedule(
                   badge:
                     "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
                   requireInteraction: true,
-                     actions: [
-                      {
-                        action: "take",
-                        title: "✅ Take",
-                      },
-                      {
-                        action: "snooze",
-                        title: "⏰ Snooze",
-                      },
-                    ],
+                  actions: [
+                    {
+                      action: "take",
+                      title: "✅ Take",
+                    },
+                    {
+                      action: "snooze",
+                      title: "⏰ Snooze",
+                    },
+                  ],
                   tag: "alarm",
                 },
               },
               data: {
                 userId,
                 medId,
+                medicationName,
+                medicationInstructions: medData?.medicationInformation?.instructions,
                 doseId: doseDoc.id,
                 time: doseDateTime.toISO() ?? "",
                 alarm: "true",
@@ -445,3 +447,5 @@ export const markMissedDoses = onSchedule(
 
 );
 
+
+// 

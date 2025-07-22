@@ -24,7 +24,7 @@ export interface UserProfile {
   userType: UserType;
   fcmToken: string;
   patients?: roleInfo;
-  caregivbers?: roleInfo;
+  caregivers?: roleInfo;
 }
 
 export interface MedicationInfo {

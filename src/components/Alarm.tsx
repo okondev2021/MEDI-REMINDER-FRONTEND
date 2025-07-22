@@ -1,21 +1,32 @@
-import { useEffect, useState } from 'react'
-import { BellRing, Check, X } from 'lucide-react'
+import React,{ SetStateAction, useEffect, useState } from 'react'
+import { BellRing, Check, X } from 'lucide-react';
+import { useAuthContext } from '@/context/AuthContextProvider';
+import { appDb } from '@/lib/firebase';
+import { updateDoc, Timestamp, doc } from 'firebase/firestore';
+import { toast } from "react-toastify";
+
 
 interface AlarmModalProps {
     medicationName: string;
-    dosage: string;
     docId: string;
-    instructions?: string;
-    onTake: () => void;
-    onSkip: () => void;
+    instruction?: string;
+    setDisplayAlarm: React.Dispatch<SetStateAction<boolean>>;
+    medicationId: string;
 }
 
-const AlarmModal = ({ medicationName, dosage, instructions, onTake, onSkip }: AlarmModalProps) => {
+
+const AlarmModal = ({ medicationName, instruction, setDisplayAlarm, docId, medicationId }: AlarmModalProps) => {
+
+    const {currentUser} = useAuthContext();
     
     const [isPlaying, setIsPlaying] = useState(true)
 
+    const [isLoading, setIsLoading] = useState(false)
+
     useEffect(() => {
+
         // Create audio context and oscillator for alarm sound
+
         const createAlarmSound = () => {
             const AudioContext =
                 window.AudioContext || (window as any).webkitAudioContext
@@ -62,6 +73,31 @@ const AlarmModal = ({ medicationName, dosage, instructions, onTake, onSkip }: Al
         
     }, [isPlaying])
 
+
+    const onTake = async () => {
+
+        setIsLoading(true)
+
+        try {
+            const doseRef = doc(appDb, "userProfile", currentUser?.uid, "medications", medicationId, "doses", docId || "");
+
+            await updateDoc(doseRef, {
+                taken: true,
+                takenAt: Timestamp.now(),
+            });
+
+            setDisplayAlarm(false);
+
+            toast.success("Dose marked as taken ✅");
+        }
+        catch(error) {
+            toast.error(`Error marking dose as taken: ${error}`);
+        } 
+        finally {
+            setIsLoading(false);
+        }
+    }
+
     const handleTake = () => {
         setIsPlaying(false)
         onTake()
@@ -69,11 +105,11 @@ const AlarmModal = ({ medicationName, dosage, instructions, onTake, onSkip }: Al
 
     const handleSkip = () => {
         setIsPlaying(false)
-        onSkip()
+        setDisplayAlarm(false)
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50  flex items-center justify-center p-4 z-[100]">
             <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
                 <div className="bg-red-600 p-6 text-white text-center">
                     <div className={`inline-block ${isPlaying ? 'animate-shake' : ''}`}>
@@ -86,9 +122,9 @@ const AlarmModal = ({ medicationName, dosage, instructions, onTake, onSkip }: Al
                         <h3 className="text-xl font-bold text-gray-800">
                             {medicationName}
                         </h3>
-                        <p className="text-lg text-gray-600">{dosage}</p>
-                        {instructions && (
-                            <p className="mt-2 text-gray-500 text-sm">{instructions}</p>
+                        {/* <p className="text-lg text-gray-600">{dosage}</p> */}
+                        {instruction && (
+                            <p className="mt-2 text-gray-500 text-sm">{instruction}</p>
                         )}
                         <p className="mt-4 text-gray-700">
                             It's time to take your medication
@@ -97,17 +133,21 @@ const AlarmModal = ({ medicationName, dosage, instructions, onTake, onSkip }: Al
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={handleSkip}
-                            className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                            className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                             <X size={20} />
                             Skip
                         </button>
                         <button
                             onClick={handleTake}
-                            className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                            className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-md hover:bg-primary-700 transition-colors cursor-pointer"
                         >
-                            <Check size={20} />
-                            Take
+                            {isLoading ? "Processing..." : (
+                                <>
+                                    <Check size={20} />
+                                    Take
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

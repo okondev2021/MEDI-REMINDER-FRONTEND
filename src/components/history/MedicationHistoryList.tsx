@@ -13,11 +13,11 @@ import {
 import { DosesScheduleProps, GroupedDosesProps } from '@/lib/types';
 import { groupMedicationHistoryByDate } from '@/lib/mediRemindUtils';
 import { DateTime } from 'luxon';
-import { fetchPatientTimezone } from '@/lib/mediRemindUtils';
+import { fetchPatientTimezoneFromCaregiver } from '@/lib/mediRemindUtils';
 
 
 
-const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean}) => {
+const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean }) => {
 
     const { currentUser, userProfileInfo } = useAuthContext();
 
@@ -63,7 +63,7 @@ const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean}) => {
         if (!userProfileInfo?.timezone) {
             const timeZoneFunc = async () => {
                 if (userProfileInfo) {
-                    const patientTimezone = await fetchPatientTimezone(userProfileInfo);
+                    const patientTimezone = await fetchPatientTimezoneFromCaregiver(userProfileInfo);
                     setTimeZone(patientTimezone ?? "");
                 }
             }
@@ -172,7 +172,7 @@ const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean}) => {
                                                         ${med.taken ? "bg-green-100 text-green-800" : med.missed ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`
                                                     }
                                                 >
-                                                    {med.taken ? "taken" : med.missed ? "missed": "pending"}
+                                                    {med.taken ? "taken" : med.missed ? "missed" : "pending"}
                                                 </span>
                                             </div>
                                             <div className="flex items-center text-sm text-gray-600">

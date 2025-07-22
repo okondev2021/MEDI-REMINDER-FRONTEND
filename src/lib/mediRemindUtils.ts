@@ -2,7 +2,7 @@ import {
   GenerateMonthlyDosesParams,
   DosesScheduleProps,
   GroupedDosesProps,
-  UserProfile
+  UserProfile,
 } from "./types";
 import { DateTime } from "luxon";
 import { appDb } from "./firebase";
@@ -61,7 +61,7 @@ export function generateMonthlyDoses({
             new Date(d.getFullYear(), d.getMonth(), d.getDate(), hour, minute)
           ),
           notificationSent: false,
-          lastNotifiedAt: null
+          lastNotifiedAt: null,
         });
       }
     }
@@ -127,9 +127,6 @@ export const groupDailyDosesByTime = (
   return sortedGroupedDoses;
 };
 
-
-
-
 export const groupMedicationHistoryByDate = (
   doses: DosesScheduleProps[],
   timezone: string
@@ -150,9 +147,8 @@ export const groupMedicationHistoryByDate = (
         medications: [dose],
       });
     } else {
-
-      const matchedTime = groupedMedicationDoses?.find((doseItem) =>
-        doseItem.time === medicationTime
+      const matchedTime = groupedMedicationDoses?.find(
+        (doseItem) => doseItem.time === medicationTime
       );
 
       if (matchedTime) {
@@ -170,7 +166,6 @@ export const groupMedicationHistoryByDate = (
       ),
     }));
 
-  
   return sortedGroupedMedicationDoses;
 };
 
@@ -192,9 +187,7 @@ export const formatTimestampToUserTime = (
     .toFormat(format);
 };
 
-export const markDoseAsTaken = async (
-  dose: DosesScheduleProps
-) => {
+export const markDoseAsTaken = async (dose: DosesScheduleProps) => {
   try {
     const now = new Date();
 
@@ -234,16 +227,15 @@ export const markDoseAsTaken = async (
     toast.success("Dose marked as taken ✅");
 
     return { success: true };
-  }
-  catch (error) {
+  } catch (error) {
     toast.error(`Error marking dose as taken: ${error}`);
   }
 };
 
 
-
-export const fetchPatientTimezone = async (caregiverProfile: UserProfile) => {
-
+export const fetchPatientTimezoneFromCaregiver = async (
+  caregiverProfile: UserProfile
+) => {
   try {
     const patientUid = caregiverProfile.patients?.uid;
 
@@ -266,11 +258,8 @@ export const fetchPatientTimezone = async (caregiverProfile: UserProfile) => {
     const timezone = patientData.timezone;
 
     return timezone;
-
-  }
-  catch (error) {
+  } catch (error) {
     toast.error(`Error fetching patient timezone: ${String(error)}`);
     return null;
   }
 };
-

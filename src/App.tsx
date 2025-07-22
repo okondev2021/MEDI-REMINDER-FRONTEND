@@ -3,52 +3,55 @@ import AuthContextProvider from "./context/AuthContextProvider";
 import AuthWrapper from "./Wrapper/AuthWrapper";
 import MainLayout from "./layout/MainLayout";
 import { Dashboard, HelpPage, Medications, Notifications, Schedule, Settings, FourZeroFour, Login, SignUp, History, Notification, CaregiverInvite, NotAuthorized } from "./pages";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { messaging } from "./lib/firebase";
 import { onMessage } from "firebase/messaging";
 import { USER_ROLES } from "./lib/types";
 import ProtectedRoute from "./Wrapper/ProtectedRoute";
+import AlarmModal from "./components/Alarm";
+import { useState } from "react";
 
-function App() {
+
+const App = () => {
+
+  const [displayAlarm, setDisplayAlarm] = useState(true)
+
+  const [alarmInfo, setAlarmInfo] = useState({
+    doseId: "",
+    medicationInstruction: "",
+    medicationId: "",
+    medicationName: ""
+  })
 
   onMessage(messaging, (payload) => {
 
-    console.log("📥 Foreground FCM:", payload);
+    if (displayAlarm) {
 
-    // ✅ Show toast
-    if (payload.notification?.title || payload.notification?.body) {
-      toast(payload.notification.title ?? payload.notification.body ?? "New notification");
-    }
+      setDisplayAlarm(true);
 
-    // ✅ Play alarm sound (looping)
-    try {
-      const audio = new Audio("https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3");
-      audio.loop = true;
-      audio.play().catch((e) => {
-        console.warn("🔇 Audio playback was blocked by the browser:", e);
-      });
+      setAlarmInfo({
+        doseId: payload?.data?.doseId || "",
+        medicationInstruction: payload?.data?.medicationInstructions || "",
+        medicationId: payload?.data?.medId || "",
+        medicationName: payload?.data?.medicationName || ""
+      })
     }
-    catch (e) {
-      console.error("❌ Failed to play alarm sound:", e);
-    }
-
-    // ✅ Trigger vibration
-    if ("vibrate" in navigator) {
-      navigator.vibrate([300, 100, 400]);
-    }
-
+  
   });
-
 
 
   return (
     <>
       <ScrollToTop />
+
       <Routes>
         <Route path="/" element={
           <AuthContextProvider>
             <AuthWrapper>
+              {displayAlarm && (
+                <AlarmModal docId={alarmInfo.doseId} medicationName={alarmInfo.medicationName} medicationId={alarmInfo.medicationId} setDisplayAlarm={setDisplayAlarm} instruction={alarmInfo.medicationInstruction} />
+              )}
               <MainLayout />
             </AuthWrapper>
           </AuthContextProvider>
@@ -133,5 +136,6 @@ function App() {
     </>
   )
 }
+
 
 export default App

@@ -1,7 +1,9 @@
 import { LinkIcon } from 'lucide-react';
+import React, { SetStateAction } from 'react';
 
-const SplashScreen = () => {
-  return <div className="fixed inset-0 bg-gradient-to-b from-white to-blue-50 flex flex-col items-center justify-center p-4">
+const SplashScreen = ({ setDisplaySplashScreen, contextLoading }: { setDisplaySplashScreen: React.Dispatch<SetStateAction<boolean>>; contextLoading: boolean }) => {
+  return (
+    <div className="fixed inset-0 bg-gradient-to-b from-white to-blue-50 flex flex-col items-center justify-center p-4">
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-blue-600 rounded-full animate-ping opacity-20"></div>
         <div className="absolute inset-0 bg-blue-600 rounded-full animate-pulse opacity-40"></div>
@@ -24,13 +26,16 @@ const SplashScreen = () => {
           </div>
         </div>
       </div>
-      <div className="absolute bottom-8 animate-fade-in-delayed-more">
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <span className="block w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
-          <span>Loading your health data...</span>
-        </div>
+      <div className="absolute bottom-8 animate-fade-in-delayed-more flex justify-center w-full">
+        <button
+          onClick={() => setDisplaySplashScreen(false)}
+          className={`${contextLoading ? "opacity-0": "opacity-100"} px-6 py-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 text-sm transition-all duration-700 cursor-pointer`}
+        >
+          Welcome to MediRemind
+        </button>
       </div>
-    </div>;
+    </div>
+  )
 }
 
 export default SplashScreen;
