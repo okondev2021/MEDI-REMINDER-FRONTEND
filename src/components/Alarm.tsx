@@ -79,7 +79,7 @@ const AlarmModal = ({ medicationName, instruction, setDisplayAlarm, docId, medic
         setIsLoading(true)
 
         try {
-            const doseRef = doc(appDb, "userProfile", currentUser?.uid, "medications", medicationId, "doses", docId || "");
+            const doseRef = doc(appDb, "userProfile", currentUser?.uid || "", "medications", medicationId || "", "doses", docId || "");
 
             await updateDoc(doseRef, {
                 taken: true,
