@@ -15,7 +15,7 @@ import { useState } from "react";
 
 const App = () => {
 
-  const [displayAlarm, setDisplayAlarm] = useState(true)
+  const [displayAlarm, setDisplayAlarm] = useState(false);
 
   const [alarmInfo, setAlarmInfo] = useState({
     doseId: "",
@@ -26,7 +26,7 @@ const App = () => {
 
   onMessage(messaging, (payload) => {
 
-    if (displayAlarm) {
+    if (!displayAlarm) {
 
       setDisplayAlarm(true);
 

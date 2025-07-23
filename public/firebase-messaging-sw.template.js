@@ -26,8 +26,9 @@ messaging.onBackgroundMessage((payload) => {
     payload
   );
 
-  const notificationTitle = payload.notification?.title || "New Notification";
-  const notificationBody = payload.notification?.body || "";
+  const notificationTitle =
+    payload.webpush.notification?.title || "New Notification";
+  const notificationBody = payload.webpush.notification?.body || "";
 
   // Notification options with both vibration and sound
   const notificationOptions = {
@@ -35,9 +36,11 @@ messaging.onBackgroundMessage((payload) => {
     icon:
       payload.notification?.icon ||
       "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
-    vibrate: [300, 100, 400],
+    vibrate: [200, 100, 200, 100, 200, 100, 200],
     data: payload.data || {},
     requireInteraction: true,
+    tag: `Medication alarm ${payload.data.medicationName}`,
+    renotify: true,
     badge:
       "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
     actions: [
@@ -51,21 +54,6 @@ messaging.onBackgroundMessage((payload) => {
       },
     ],
   };
-
-  // Play sound if alarm is requested
-  if (payload.data?.alarm === "true") {
-    // Method 1: Using the Web Notifications API sound property (works in some browsers)
-    notificationOptions.sound =
-      "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3";
-
-    // Method 2: Directly play the audio (more reliable cross-browser)
-    self.registration.getNotifications().then(() => {
-      const audio = new Audio(
-        "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3"
-      );
-      audio.play().catch((e) => console.log("Audio play failed:", e));
-    });
-  }
 
   return self.registration.showNotification(
     notificationTitle,
@@ -84,28 +72,47 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-
-self.addEventListener('notificationclick', function (event) {
-  
+self.addEventListener("notificationclick", function (event) {
+   
   event.notification.close();
 
-  const { medicationId, doseId } = event.notification.data || {};
-
-  const targetUrl = `/?alarm=true&medicationId=${medicationId}&doseId=${doseId}`;
+  const { medId, doseId, medicationInstructions, medicationName } =
+    event.notification.data || {};
+  const targetUrl = `/?alarm=true&medId=${medId}&doseId=${doseId}&medicationName=${medicationName}&medicationInstructions=${medicationInstructions}`;
 
   if (event.action === "take") {
     event.waitUntil(
       clients
         .matchAll({ type: "window", includeUncontrolled: true })
         .then(function (clientList) {
+          let clientToFocus = null;
+
           for (const client of clientList) {
-            if (client.url === "/" && "focus" in client) {
-              client.navigate(targetUrl);
-              return client.focus();
+            // Check if a client (tab/window) for your origin is already open
+            // You might make this less strict than client.url === "/" if your app has other main routes
+            if (client.url.startsWith(self.location.origin)) {
+              // Check if it's within your PWA's origin
+              clientToFocus = client;
+              break; // Found one, break loop
             }
+          }
+
+          if (clientToFocus && "focus" in clientToFocus) {
+            // If an existing client is found, navigate it to the target URL and focus it
+            return clientToFocus
+              .navigate(targetUrl)
+              .then(() => clientToFocus.focus());
+          } else {
+            // If no suitable client is found, open a new window
+            return clients.openWindow(targetUrl);
           }
         })
     );
+  }
+
+  if (!event.action) {
+    // Default click (not an action button)
+    event.waitUntil(clients.openWindow(targetUrl));
   }
 });
 

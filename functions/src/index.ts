@@ -127,19 +127,15 @@ export const notifyUpcomingDoses = onSchedule(
           try {
             const response = await messaging.send({
               token: fcmToken,
-              notification: {
-                title: "💊 Medication Reminder",
-                body: `It's time to take your medication: ${medicationName}`,
-              },
               webpush: {
                 headers: {
                   Urgency: "high",
                 },
                 notification: {
+                  title: "💊 Medication Reminder",
+                  body: `It's time to take your medication: ${medicationName}`,
                   icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
-                  vibrate: [300, 100, 400],
-                  sound:
-                    "https://res.cloudinary.com/dcpbyncni/video/upload/v1752652597/alarm_w8z7u2.mp3",
+                  vibrate: [200, 100, 200, 100, 200, 100, 200],
                   badge:
                     "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
                   requireInteraction: true,
@@ -153,14 +149,16 @@ export const notifyUpcomingDoses = onSchedule(
                       title: "⏰ Snooze",
                     },
                   ],
-                  tag: "alarm",
+                  tag: `Medication alarm ${medicationName}`,
+                  renotify: true,
                 },
               },
               data: {
                 userId,
                 medId,
                 medicationName,
-                medicationInstructions: medData?.medicationInformation?.instructions,
+                medicationInstructions:
+                  medData?.medicationInformation?.instructions,
                 doseId: doseDoc.id,
                 time: doseDateTime.toISO() ?? "",
                 alarm: "true",
