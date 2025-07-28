@@ -1,5 +1,9 @@
-importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js");
-importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js");
+importScripts(
+  "https://www.gstatic.com/firebasejs/12.6.0/firebase-app-compat.js"
+);
+importScripts(
+  "https://www.gstatic.com/firebasejs/12.6.0/firebase-messaging-compat.js"
+);
 
 
 const firebaseConfig = {
@@ -33,9 +37,7 @@ messaging.onBackgroundMessage((payload) => {
   // Notification options with both vibration and sound
   const notificationOptions = {
     body: notificationBody,
-    icon:
-      payload.notification?.icon ||
-      "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
+    icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
     vibrate: [200, 100, 200, 100, 200, 100, 200],
     data: payload.data || {},
     requireInteraction: true,
