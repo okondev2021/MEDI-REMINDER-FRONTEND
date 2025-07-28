@@ -1,8 +1,8 @@
 importScripts(
-  "https://www.gstatic.com/firebasejs/12.6.0/firebase-app-compat.js"
+  "https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"
 );
 importScripts(
-  "https://www.gstatic.com/firebasejs/12.6.0/firebase-messaging-compat.js"
+  "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging-compat.js"
 );
 
 
@@ -38,7 +38,9 @@ messaging.onBackgroundMessage((payload) => {
   const notificationOptions = {
     body: notificationBody,
     icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
-    vibrate: [200, 100, 200, 100, 200, 100, 200],
+    vibrate: [
+      200, 100, 200, 100, 200, 100, 200, 200, 100, 200, 100, 200, 100, 200,
+    ],
     data: payload.data || {},
     requireInteraction: true,
     tag: `Medication alarm ${payload.data.medicationName}`,
@@ -74,48 +76,89 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("notificationclick", function (event) {
+// self.addEventListener("notificationclick", function (event) {
    
-  event.notification.close();
+//   event.notification.close();
 
-  const { medId, doseId, medicationInstructions, medicationName } =
-    event.notification.data || {};
-  const targetUrl = `/?alarm=true&medId=${medId}&doseId=${doseId}&medicationName=${medicationName}&medicationInstructions=${medicationInstructions}`;
+//   const { medId, doseId, medicationInstructions, medicationName } =
+//     event.notification.data || {};
+//   const targetUrl = `/?alarm=true&medId=${medId}&doseId=${doseId}&medicationName=${medicationName}&medicationInstructions=${medicationInstructions}`;
 
-  if (event.action === "take") {
-    event.waitUntil(
-      clients
-        .matchAll({ type: "window", includeUncontrolled: true })
-        .then(function (clientList) {
-          let clientToFocus = null;
+//   if (event.action === "take") {
+//     event.waitUntil(
+//       clients
+//         .matchAll({ type: "window", includeUncontrolled: true })
+//         .then(function (clientList) {
+//           let clientToFocus = null;
 
-          for (const client of clientList) {
-            // Check if a client (tab/window) for your origin is already open
-            // You might make this less strict than client.url === "/" if your app has other main routes
-            if (client.url.startsWith(self.location.origin)) {
-              // Check if it's within your PWA's origin
-              clientToFocus = client;
-              break; // Found one, break loop
-            }
-          }
+//           for (const client of clientList) {
+//             // Check if a client (tab/window) for your origin is already open
+//             // You might make this less strict than client.url === "/" if your app has other main routes
+//             if (client.url.startsWith(self.location.origin)) {
+//               // Check if it's within your PWA's origin
+//               clientToFocus = client;
+//               break; // Found one, break loop
+//             }
+//           }
 
-          if (clientToFocus && "focus" in clientToFocus) {
-            // If an existing client is found, navigate it to the target URL and focus it
-            return clientToFocus
-              .navigate(targetUrl)
-              .then(() => clientToFocus.focus());
-          } else {
-            // If no suitable client is found, open a new window
-            return clients.openWindow(targetUrl);
-          }
-        })
-    );
+//           if (clientToFocus && "focus" in clientToFocus) {
+//             // If an existing client is found, navigate it to the target URL and focus it
+//             return clientToFocus
+//               .navigate(targetUrl)
+//               .then(() => clientToFocus.focus());
+//           } else {
+//             // If no suitable client is found, open a new window
+//             return clients.openWindow(targetUrl);
+//           }
+//         })
+//     );
+//   }
+
+//   if (!event.action) {
+//     // Default click (not an action button)
+//     event.waitUntil(clients.openWindow(targetUrl));
+//   }
+
+// });
+
+
+self.addEventListener("notificationclick", function (event) {
+
+  const clickedNotification = event.notification;
+
+  const action = event.action;
+
+  const { medId, doseId, medicationInstructions, medicationName } = event.notification.data || {};
+
+  clickedNotification.close();
+
+  const baseURL = self.location.origin;
+
+  let targetUrl = `${baseURL}`; 
+
+  if (action === "take") {
+    targetUrl = `${baseURL}/?alarm=true&medId=${medId}&doseId=${doseId}&medicationName=${medicationName}&medicationInstructions=${medicationInstructions}`;
   }
 
-  if (!event.action) {
-    // Default click (not an action button)
-    event.waitUntil(clients.openWindow(targetUrl));
-  }
+  // This looks to see if a window is already open and focuses it,
+  // otherwise opens a new one.
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          // Check if a client (tab/window) is already open at the target URL
+          // Or if it's your app's main page, you might just want to focus it
+          if (client.url.includes(targetUrl) && "focus" in client) {
+            return client.focus();
+          }
+        }
+        // If no suitable client found, open a new window
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
+  );
 });
 
 

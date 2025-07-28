@@ -111,18 +111,18 @@ export const notifyUpcomingDoses = onSchedule(
             continue; // ⏱ Not time yet
           }
 
-          const lastNotified = doseData.lastNotifiedAt?.toDate?.();
-          if (lastNotified) {
-            const lastNotifiedAt =
-              DateTime.fromJSDate(lastNotified).setZone(userTimeZone);
-            const minutesSinceLast = now.diff(
-              lastNotifiedAt,
-              "minutes"
-            ).minutes;
-            if (minutesSinceLast < CONFIG.notifyCooldownMins) {
-              continue; // 🔁 Cooldown
-            }
-          }
+          // const lastNotified = doseData.lastNotifiedAt?.toDate?.();
+          // if (lastNotified) {
+          //   const lastNotifiedAt =
+          //     DateTime.fromJSDate(lastNotified).setZone(userTimeZone);
+          //   const minutesSinceLast = now.diff(
+          //     lastNotifiedAt,
+          //     "minutes"
+          //   ).minutes;
+          //   if (minutesSinceLast < CONFIG.notifyCooldownMins) {
+          //     continue; // 🔁 Cooldown
+          //   }
+          // }
 
           try {
             const response = await messaging.send({
@@ -139,16 +139,6 @@ export const notifyUpcomingDoses = onSchedule(
                   badge:
                     "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
                   requireInteraction: true,
-                  actions: [
-                    {
-                      action: "take",
-                      title: "✅ Take",
-                    },
-                    {
-                      action: "snooze",
-                      title: "⏰ Snooze",
-                    },
-                  ],
                   tag: `Medication alarm ${medicationName}`,
                   renotify: true,
                 },
