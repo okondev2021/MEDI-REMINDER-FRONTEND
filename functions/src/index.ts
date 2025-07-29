@@ -139,6 +139,16 @@ export const notifyUpcomingDoses = onSchedule(
                   badge:
                     "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
                   requireInteraction: true,
+                  actions: [
+                    {
+                      action: "take",
+                      title: "✅ Take",
+                    },
+                    {
+                      action: "snooze",
+                      title: "⏰ Snooze",
+                    },
+                  ],
                   tag: `Medication alarm ${medicationName}`,
                   renotify: true,
                 },

@@ -1,6 +1,7 @@
 import { getToken } from "firebase/messaging";
 import { doc, setDoc } from "firebase/firestore";
 import { appDb, messaging } from "./firebase";
+import { getSwRegistration } from "./swRegistration";
 
 export const requestNotificationPermission = async (
   
@@ -10,6 +11,21 @@ export const requestNotificationPermission = async (
   try {
     
     try {
+
+      const permission = await Notification.requestPermission();
+
+      if (permission !== "granted") {
+        console.warn("Notification permission not granted.");
+        return;
+      }
+
+      const swRegistration = await getSwRegistration();
+      
+      if (!swRegistration) {
+        console.error("Service Worker not registered.");
+        return;
+      }
+      
       const fcmToken = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_VAPID_KEY,
       });
@@ -32,10 +48,14 @@ export const requestNotificationPermission = async (
         );
         console.warn("⚠️ No FCM token received.");
       }
-    } catch (err) {
+    }
+    catch (err) {
       console.log("An error occurred while retrieving token. ", err);
     }
-  } catch (err: unknown) {
+
+  }
+
+  catch (err: unknown) {
     console.error("❌ Error getting notification permission:", err);
   }
 };

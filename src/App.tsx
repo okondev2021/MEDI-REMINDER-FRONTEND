@@ -1,3 +1,4 @@
+import {useEffect} from "react"
 import { Routes, Route } from "react-router-dom";
 import AuthContextProvider from "./context/AuthContextProvider";
 import AuthWrapper from "./Wrapper/AuthWrapper";
@@ -11,11 +12,19 @@ import { USER_ROLES } from "./lib/types";
 import ProtectedRoute from "./Wrapper/ProtectedRoute";
 import AlarmModal from "./components/Alarm";
 import { useState } from "react";
+import { getSwRegistration } from "./lib/swRegistration";
+
 
 
 const App = () => {
 
+  window.addEventListener('load', () => {
+    getSwRegistration();
+  });
+  
+
   const [displayAlarm, setDisplayAlarm] = useState(false);
+
 
   const [alarmInfo, setAlarmInfo] = useState({
     doseId: "",
@@ -23,6 +32,7 @@ const App = () => {
     medicationId: "",
     medicationName: ""
   })
+
 
   onMessage(messaging, (payload) => {
 
@@ -39,6 +49,50 @@ const App = () => {
     }
   
   });
+  
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      console.log("Service Worker is supported");
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        console.log(event)
+        if (event.data && event.data.type === "NAVIGATE_TO_ALARM") {
+          const { targetUrl } = event.data;
+          window.location.href = targetUrl;
+        }
+      });
+    }
+  }, []);
+
+
+  useEffect(() => {
+    // Check if the URL has query parameters for alarm
+    const searchParams = new URLSearchParams(window.location.search);
+    const shouldShowAlarm = searchParams.get("alarm") === "true";
+
+    if (shouldShowAlarm && !displayAlarm) {
+
+      const medId = decodeURIComponent(searchParams.get("medId") || "");
+      const doseId = decodeURIComponent(searchParams.get("doseId") || "");
+      const medicationName = decodeURIComponent(searchParams.get("medicationName") || "");
+      const medicationInstructions = decodeURIComponent(searchParams.get("medicationInstructions") || "");
+
+      setAlarmInfo({
+        doseId,
+        medicationInstruction: medicationInstructions,
+        medicationId: medId,
+        medicationName
+      });
+
+      setDisplayAlarm(true);
+
+      // // 🧼 Clean up the query params from URL
+      // const cleanURL = window.location.origin + window.location.pathname;
+      // window.history.replaceState({}, document.title, cleanURL);
+
+    }
+
+  }, []);
 
 
   return (
@@ -135,7 +189,10 @@ const App = () => {
       <ToastContainer />
     </>
   )
+
+
 }
 
 
 export default App
+
