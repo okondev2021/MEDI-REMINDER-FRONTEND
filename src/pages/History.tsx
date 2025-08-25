@@ -1,4 +1,5 @@
-import AdherenceStats  from '../components/history/AdherenceStats';
+import { useState } from 'react';
+import AdherenceStats from '../components/history/AdherenceStats';
 import MedicationHistoryList  from '../components/history/MedicationHistoryList';
 import { SkeletonLoader } from '../components/common/SkeletonLoader';
 
@@ -8,6 +9,8 @@ const History = () => {
     // const [isLoading, setIsLoading] = useState(false);
 
     const isLoading = false;
+
+    const [hasMedicationHistory, setHasMedicationHistory] = useState(false);
 
     if (isLoading) {
         return (
@@ -35,9 +38,8 @@ const History = () => {
                     Track your medication adherence and see your progress over time.
                 </p>
             </div>
-            <AdherenceStats />
-            {/* <HealthTips /> */}
-            <MedicationHistoryList />
+            {hasMedicationHistory && <AdherenceStats />}
+            <MedicationHistoryList setHasMedicationHistory={setHasMedicationHistory} />
         </div>
     )
 }

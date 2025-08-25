@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import { LayoutDashboardIcon, CalendarIcon, PillIcon, SettingsIcon, HelpCircleIcon, LogOutIcon, HistoryIcon, Cross } from 'lucide-react';
+import { LayoutDashboardIcon, CalendarIcon, PillIcon, SettingsIcon, HelpCircleIcon, LogOutIcon, HistoryIcon, Cross, CheckCircle } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
 import { useCloseMenuWhenClickedOutside } from '@/hooks/useCloseMenuWhenClickedOutside ';
@@ -109,7 +109,12 @@ const Sidebar = ({ showSideNav, setShowSideNav, setCaregiver }: { showSideNav: b
                                 onClick={() => setCaregiver(true)}
                             >
                                 <span className="mr-3 text-nowrap">{item.icon}</span>
-                                <span>{item.label}</span>
+                                <span className='inline-flex items-center gap-2'>
+                                    {item.label}
+                                    {userProfileInfo?.caregivers && (
+                                        <CheckCircle className='h-6 w-6 text-green-600 ' />
+                                    )}  
+                                </span>
                             </button>
                         )
                     ))}

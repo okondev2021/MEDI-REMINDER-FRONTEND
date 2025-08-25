@@ -40,21 +40,33 @@ const Medications = () => {
     const deleteMedication = async (id: string) => {
         if (!currentUser?.uid) return;
         try {
+
+            // Get doses under this medication
+            const dosesRef = collection(appDb, "userProfile", currentUser.uid, "medications", id, "doses");
+            const snapshot = await getDocs(dosesRef);
+
+            // Delete each dose doc
+            const batchDeletes = snapshot.docs.map((d) => deleteDoc(d.ref));
+            await Promise.all(batchDeletes);
+
+            // Delete the medication doc itself
             const medicationDoc = doc(appDb, "userProfile", currentUser.uid, "medications", id);
             await deleteDoc(medicationDoc);
-            getMedications();
+            
+            setMedications((prevMedications) => prevMedications?.filter((medication) => medication.id !== id));
 
             toast.success("Medication deleted successfully");
         }
         catch (error) {
             const message = error instanceof FirebaseError ? error.message : "An unexpected error occurred, try again";
+            getMedications();
             toast.error(message)
         }
     }
 
     useEffect(() => {
         getMedications()
-    }, [])
+    }, [newMedication])
 
     return (
         newMedication ?

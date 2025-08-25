@@ -57,7 +57,6 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
         period: 'AM'
     }]);
 
-
     // select day of the week
     const handleDayToggle = (day: string) => {
         setDays(prev => ({
@@ -102,7 +101,6 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
 
         setTimes(newTimes);
     };
-
 
     const submitMedication = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -183,7 +181,6 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
             }
         }
     }
-
 
     return (
         <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">

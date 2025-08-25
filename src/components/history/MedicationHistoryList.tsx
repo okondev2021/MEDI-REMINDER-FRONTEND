@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction } from 'react';
 import { CheckIcon, XIcon, ClockIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { useAuthContext } from '@/context/AuthContextProvider';
 import { appDb } from '@/lib/firebase';
@@ -17,7 +17,7 @@ import { fetchPatientTimezoneFromCaregiver } from '@/lib/mediRemindUtils';
 
 
 
-const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean }) => {
+const MedicationHistoryList = ({ caregiver, setHasMedicationHistory }: { caregiver?: boolean; setHasMedicationHistory: React.Dispatch<SetStateAction<boolean>> }) => {
 
     const { currentUser, userProfileInfo } = useAuthContext();
 
@@ -25,12 +25,9 @@ const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean }) => {
 
     const now = DateTime.local().setZone(timeZone).startOf('day');
 
-
     const yesterday = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
 
-
     const [medicationHistory, setMedicationHistory] = useState<GroupedDosesProps[]>()
-
 
     const getFullMedicationHistory = async () => {
 
@@ -55,6 +52,7 @@ const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean }) => {
             }
         ));
 
+        setHasMedicationHistory(dosesList.length > 0 ? true : false);
 
         (timeZone && setMedicationHistory(groupMedicationHistoryByDate(dosesList, timeZone)))
     }
@@ -74,6 +72,7 @@ const MedicationHistoryList = ({ caregiver }: { caregiver?: boolean }) => {
             setTimeZone(userProfileInfo?.timezone ?? "")
         }
         getFullMedicationHistory();
+
 
     }, [timeZone])
 
