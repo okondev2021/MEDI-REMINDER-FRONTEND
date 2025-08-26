@@ -17,7 +17,7 @@ import { fetchPatientTimezoneFromCaregiver } from '@/lib/mediRemindUtils';
 
 
 
-const MedicationHistoryList = ({ caregiver, setHasMedicationHistory }: { caregiver?: boolean; setHasMedicationHistory: React.Dispatch<SetStateAction<boolean>> }) => {
+const MedicationHistoryList = ({ caregiver, setHasMedicationHistory }: { caregiver?: boolean; setHasMedicationHistory?: React.Dispatch<SetStateAction<boolean>> }) => {
 
     const { currentUser, userProfileInfo } = useAuthContext();
 
@@ -52,7 +52,9 @@ const MedicationHistoryList = ({ caregiver, setHasMedicationHistory }: { caregiv
             }
         ));
 
-        setHasMedicationHistory(dosesList.length > 0 ? true : false);
+        if (setHasMedicationHistory) {
+            setHasMedicationHistory(dosesList.length > 0 ? true : false);
+        }
 
         (timeZone && setMedicationHistory(groupMedicationHistoryByDate(dosesList, timeZone)))
     }

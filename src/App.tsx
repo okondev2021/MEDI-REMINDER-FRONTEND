@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import AuthContextProvider from "./context/AuthContextProvider";
 import AuthWrapper from "./Wrapper/AuthWrapper";
 import MainLayout from "./layout/MainLayout";
-import { Dashboard, HelpPage, Medications, Notifications, Schedule, Settings, FourZeroFour, Login, SignUp, History, Notification, CaregiverInvite, NotAuthorized } from "./pages";
+import { Dashboard, HelpPage, Medications, Notifications, Schedule, Settings, FourZeroFour, Login, SignUp, History, Notification, CaregiverInvite, NotAuthorized, CaregiverSignInRedirect } from "./pages";
 import { ToastContainer } from "react-toastify";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { messaging } from "./lib/firebase";
@@ -85,10 +85,6 @@ const App = () => {
       });
 
       setDisplayAlarm(true);
-
-      // // 🧼 Clean up the query params from URL
-      // const cleanURL = window.location.origin + window.location.pathname;
-      // window.history.replaceState({}, document.title, cleanURL);
 
     }
 
@@ -179,6 +175,7 @@ const App = () => {
         </Route>
         {/* AUTH ROUTE */}
         <Route path="/caregiver-invite" element={<CaregiverInvite />} />
+        <Route path="/caregiver-signin-redirect" element={<CaregiverSignInRedirect />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         {/* 404 */}

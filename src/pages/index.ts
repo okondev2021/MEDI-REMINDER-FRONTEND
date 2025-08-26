@@ -11,3 +11,4 @@ export { default as History } from "./History";
 export { default as Notification } from "./Notification";
 export { default as CaregiverInvite } from "./CaregiverInvite";
 export { default as NotAuthorized } from "./NotAuthorized";
+export { default as CaregiverSignInRedirect } from "./CaregiverSignInRedirect";
