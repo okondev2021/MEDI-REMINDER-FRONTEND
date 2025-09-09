@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { ClockIcon, CheckIcon } from 'lucide-react';
-import { useAuthContext } from '@/context/AuthContextProvider';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { ClockIcon, CheckIcon } from "lucide-react";
+import { useAuthContext } from "@/context/AuthContextProvider";
+import { Link } from "react-router-dom";
 import {
     collectionGroup,
     query,
@@ -9,28 +9,34 @@ import {
     getDocs,
     orderBy,
     Timestamp,
-    limit
-} from 'firebase/firestore';
-import { appDb } from '@/lib/firebase';
-import { DosesScheduleProps, UserProfile} from '@/lib/types';
+    limit,
+} from "firebase/firestore";
+import { appDb } from "@/lib/firebase";
+import { DosesScheduleProps, UserProfile } from "@/lib/types";
 import { DateTime } from "luxon";
-import { formatTimestampToUserTime } from '@/lib/mediRemindUtils';
-import LoadingSpinner from '../common/LoadingSpinner';
-import { markDoseAsTaken } from '@/lib/mediRemindUtils';
-import { toast } from 'react-toastify';
+import { formatTimestampToUserTime } from "@/lib/mediRemindUtils";
+import LoadingSpinner from "../common/LoadingSpinner";
+import { markDoseAsTaken } from "@/lib/mediRemindUtils";
+import { toast } from "react-toastify";
 
-
-const DashboardMedicationItem = ({ upComingMedication, userProfileInfo }: { upComingMedication: DosesScheduleProps; userProfileInfo: UserProfile }) => {
-
+/* ✅ Single upcoming medication card */
+const DashboardMedicationItem = ({
+    upComingMedication,
+    userProfileInfo,
+}: {
+    upComingMedication: DosesScheduleProps;
+    userProfileInfo: UserProfile;
+}) => {
     const timeLeftToMedication = (timestamp: Timestamp) => {
         const now = DateTime.now().setZone(userProfileInfo?.timezone);
-        const medTimeUTC = DateTime.fromJSDate(timestamp.toDate()).setZone(userProfileInfo?.timezone);
+        const medTimeUTC = DateTime.fromJSDate(timestamp.toDate()).setZone(
+            userProfileInfo?.timezone
+        );
         const diff = medTimeUTC.diff(now, "hours");
         return Math.round(diff.hours);
-    }
+    };
 
-    const [loading, setLoading] = useState(false)
-
+    const [loading, setLoading] = useState(false);
     const [taken, setTaken] = useState(false);
 
     const markMedicationDoseAsTaken = async () => {
@@ -38,46 +44,70 @@ const DashboardMedicationItem = ({ upComingMedication, userProfileInfo }: { upCo
         try {
             const response = await markDoseAsTaken(upComingMedication);
             if (response && response.success) {
-                setTaken(true); // ✅ Only runs if the dose was actually marked
+                setTaken(true);
             }
-        }
-        catch (err) {
+        } catch (err) {
             return;
-        }
-        finally {
-          setLoading(false);
+        } finally {
+            setLoading(false);
         }
     };
-    
+
     const alreadyTaken = () => {
-        toast.info("This medication has already been taken")
-    }
+        toast.info("This medication has already been taken");
+    };
 
     return (
-        <div key={upComingMedication.id} className="border border-gray-200 rounded-lg p-4">
-            <div className="flex justify-between items-center">
+        <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 hover:bg-gray-100/50 transition">
+            <div className="flex justify-between items-start">
+                {/* Medication Info */}
                 <div>
-                    <h3 className="font-medium text-gray-900">{upComingMedication.medicationName}</h3>
-                    <p className="text-sm text-gray-600">{upComingMedication.medicationStrength}</p>
+                    <h3 className="font-semibold text-gray-900 text-base">
+                        {upComingMedication.medicationName}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                        {upComingMedication.medicationStrength}
+                    </p>
                 </div>
+
+                {/* Time */}
                 <div className="text-right">
-                    <p className="font-medium">
-                        {userProfileInfo?.timezone && formatTimestampToUserTime(upComingMedication.Timestamp, userProfileInfo?.timezone)}
+                    <p className="font-medium text-gray-900">
+                        {userProfileInfo?.timezone &&
+                            formatTimestampToUserTime(
+                                upComingMedication.Timestamp,
+                                userProfileInfo?.timezone
+                            )}
                     </p>
-                    <p className="text-sm text-blue-600 flex items-center justify-end gap-1">
+                    <p className="text-xs text-blue-600 flex items-center justify-end gap-1 mt-1">
                         <ClockIcon size={14} />
-                        {timeLeftToMedication(upComingMedication.Timestamp) > 0 ? `in ${timeLeftToMedication(upComingMedication.Timestamp)} hours` : "Now"}
+                        {timeLeftToMedication(upComingMedication.Timestamp) > 0
+                            ? `in ${timeLeftToMedication(upComingMedication.Timestamp)} hrs`
+                            : "Now"}
                     </p>
                 </div>
             </div>
-            <div className="mt-3 text-sm text-gray-600">
-                <p>{upComingMedication.medicationInstruction}</p>
-            </div>
-            <div className="mt-3">
+
+            {/* Instructions */}
+            {upComingMedication.medicationInstruction && (
+                <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+                    {upComingMedication.medicationInstruction}
+                </p>
+            )}
+
+            {/* Action button */}
+            <div className="mt-4">
                 <button
                     onClick={taken ? alreadyTaken : markMedicationDoseAsTaken}
-                    className={`${taken ? "bg-blue-900 hover:bg-blue-800" : "bg-blue-600 hover:bg-blue-700"} cursor-pointer text-white text-sm py-2 px-4 rounded-md flex items-center gap-1`}>
-                    {loading ? "Processing" : (
+                    disabled={loading}
+                    className={`${taken
+                            ? "bg-blue-900 hover:bg-blue-800"
+                            : "bg-blue-600 hover:bg-blue-700"
+                        } w-full cursor-pointer text-white text-sm font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition`}
+                >
+                    {loading ? (
+                        "Processing..."
+                    ) : (
                         <>
                             <CheckIcon size={16} />
                             {taken ? "Taken" : "Mark as Taken"}
@@ -86,78 +116,93 @@ const DashboardMedicationItem = ({ upComingMedication, userProfileInfo }: { upCo
                 </button>
             </div>
         </div>
-    )
-}
+    );
+};
 
-
+/* ✅ Upcoming medications list */
 const UpcomingMedications = () => {
-
     const { currentUser, userProfileInfo } = useAuthContext();
 
-    const [upComingMedications, setUpcomingMedications] = useState<DosesScheduleProps[]>()
+    const [upComingMedications, setUpcomingMedications] =
+        useState<DosesScheduleProps[]>();
 
-    const durationInHours = 24
-    
+    const durationInHours = 24;
+
     const getUpcomingDoses = async () => {
-        const currentLocalTime = DateTime.now().setZone(userProfileInfo?.timezone) ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const currentLocalTime =
+            DateTime.now().setZone(userProfileInfo?.timezone) ??
+            Intl.DateTimeFormat().resolvedOptions().timeZone;
         const endTimeRange = currentLocalTime.plus({ hours: 24 });
 
         const q = query(
-            collectionGroup(appDb, 'doses'),
-            where('userId', '==', currentUser?.uid),
-            where('Timestamp', '>=', Timestamp.fromDate(currentLocalTime.toUTC().toJSDate())),
+            collectionGroup(appDb, "doses"),
+            where("userId", "==", currentUser?.uid),
+            where("Timestamp", ">=", Timestamp.fromDate(currentLocalTime.toUTC().toJSDate())),
             where("Timestamp", "<=", Timestamp.fromDate(endTimeRange.toUTC().toJSDate())),
             where("taken", "==", false),
             where("missed", "==", false),
             limit(4),
-            orderBy('Timestamp', 'asc'),
+            orderBy("Timestamp", "asc")
         );
 
         const doses = await getDocs(q);
 
-        const dosesList = doses.docs.map(dose => (
-            {
-                ...(dose.data() as DosesScheduleProps),
-                id: dose.id,
-            }
-        ));
+        const dosesList = doses.docs.map((dose) => ({
+            ...(dose.data() as DosesScheduleProps),
+            id: dose.id,
+        }));
 
-        setUpcomingMedications(dosesList)
-    }
+        setUpcomingMedications(dosesList);
+    };
 
     useEffect(() => {
-        if (!userProfileInfo?.timezone) {
-            return;
-        }
+        if (!userProfileInfo?.timezone) return;
         getUpcomingDoses();
-    }, [userProfileInfo?.timezone])
+    }, [userProfileInfo?.timezone]);
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            {/* Header */}
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Upcoming Medications
             </h2>
+
+            {/* List */}
             <div className="space-y-4">
-                {!upComingMedications && <LoadingSpinner size='lg' label='Upcoming Medication Loading' />}
+                {!upComingMedications && (
+                    <LoadingSpinner size="lg" label="Loading Upcoming Medications..." />
+                )}
+
                 {upComingMedications?.length === 0 && (
-                    <div className="mt-3 text-sm text-gray-600">
-                        <p>No upcoming medications in the next {durationInHours} hrs.</p>
+                    <div className="text-center py-6">
+                        <p className="text-sm text-gray-500">
+                            No upcoming medications in the next {durationInHours} hrs.
+                        </p>
                     </div>
                 )}
 
-                {upComingMedications && userProfileInfo && upComingMedications.map(upComingMedication => (
-                    <DashboardMedicationItem key={upComingMedication.id} upComingMedication={upComingMedication} userProfileInfo={userProfileInfo} />
-                ))}
-                
+                {upComingMedications &&
+                    userProfileInfo &&
+                    upComingMedications.map((upComingMedication) => (
+                        <DashboardMedicationItem
+                            key={upComingMedication.id}
+                            upComingMedication={upComingMedication}
+                            userProfileInfo={userProfileInfo}
+                        />
+                    ))}
             </div>
-            <div className="mt-4 text-center">
-                <Link to={"/schedule"} className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer">
+
+            {/* Footer */}
+            <div className="mt-6 text-center">
+                <Link
+                    to={"/schedule"}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
                     View Full Schedule
                 </Link>
             </div>
         </div>
     );
-}
-
+};
 
 export default UpcomingMedications;

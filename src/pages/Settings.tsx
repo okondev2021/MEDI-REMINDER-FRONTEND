@@ -121,26 +121,33 @@ const SettingsPage = () => {
     }
 
     return (
-        <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Settings</h2>
-            <form className="space-y-6" onSubmit={submitUpdatedUserSettings} method='post'>
+        <div className="max-w-3xl space-y-6 mx-auto px-4 sm:px-6 lg:px-0">
+            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Settings</h2>
+
+            <form
+                className="space-y-8"
+                onSubmit={submitUpdatedUserSettings}
+                method="post"
+            >
                 {/* Notification Preferences */}
                 {userProfileInfo?.userType === USER_ROLES.PATIENT && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                        <h3 className="text-lg font-medium text-gray-800 mb-5 flex items-center">
                             <BellIcon size={20} className="mr-2 text-gray-500" />
                             Notification Preferences
                         </h3>
-                        <div className="space-y-4">
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center">
-                                    <SmartphoneIcon size={18} className="text-gray-400 mr-3" />
+
+                        <div className="space-y-5">
+                            {/* Push Notifications */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-start">
+                                    <SmartphoneIcon size={18} className="text-gray-400 mr-3 mt-1" />
                                     <div>
                                         <p className="font-medium text-gray-700">
                                             Push Notifications
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                            Receive alerts on your device
+                                            Receive alerts directly on your device
                                         </p>
                                     </div>
                                 </div>
@@ -152,19 +159,20 @@ const SettingsPage = () => {
                                         onChange={(e) => onchangeUserInfo(e)}
                                         name="pushNotification"
                                     />
-                                    {/*  */}
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                                 </label>
                             </div>
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center">
-                                    <MailIcon size={18} className="text-gray-400 mr-3" />
+
+                            {/* Email Notifications */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-start">
+                                    <MailIcon size={18} className="text-gray-400 mr-3 mt-1" />
                                     <div>
                                         <p className="font-medium text-gray-700">
                                             Email Notifications
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                            Receive daily summary and reminders
+                                            Get summaries and reminders via email
                                         </p>
                                     </div>
                                 </div>
@@ -176,42 +184,48 @@ const SettingsPage = () => {
                                         onChange={(e) => onchangeUserInfo(e)}
                                         name="emailNotification"
                                     />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                                 </label>
                             </div>
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center">
-                                    <ClockIcon size={18} className="text-gray-400 mr-3" />
+
+                            {/* Reminder Timing */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-start">
+                                    <ClockIcon size={18} className="text-gray-400 mr-3 mt-1" />
                                     <div>
-                                        <p className="font-medium text-gray-700">Reminder Timing</p>
+                                        <p className="font-medium text-gray-700">
+                                            Reminder Timing
+                                        </p>
                                         <p className="text-sm text-gray-500">
-                                            Minutes before scheduled time
+                                            How long before a dose to remind you
                                         </p>
                                     </div>
                                 </div>
                                 <select
-                                    className="px-3 cursor-pointer py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     value={userInfo?.notificationReminderTiming?.toString() || "1"}
                                     onChange={(e) => onchangeUserInfo(e)}
-                                    name='notificationReminderTiming'
+                                    name="notificationReminderTiming"
                                 >
-                                    <option className='cursor-pointer' value="1">1 minute</option>
-                                    <option className='cursor-pointer' value="5">5 minutes</option>
-                                    <option className='cursor-pointer' value="10">10 minutes</option>
-                                    <option className='cursor-pointer' value="15">15 minutes</option>
-                                    <option className='cursor-pointer' value="30">30 minutes</option>
+                                    <option value="1">1 min</option>
+                                    <option value="5">5 min</option>
+                                    <option value="10">10 min</option>
+                                    <option value="15">15 min</option>
+                                    <option value="30">30 min</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 )}
+
                 {/* Account Settings */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-medium text-gray-800 mb-5 flex items-center">
                         <UserIcon size={20} className="mr-2 text-gray-500" />
                         Account Settings
                     </h3>
-                    <div className="space-y-4">
+
+                    <div className="space-y-5">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Full Name
@@ -220,7 +234,7 @@ const SettingsPage = () => {
                                 type="text"
                                 value={userInfo?.name || ""}
                                 onChange={(e) => onchangeUserInfo(e)}
-                                name='name'
+                                name="name"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -233,26 +247,29 @@ const SettingsPage = () => {
                                 value={userInfo?.email || ""}
                                 name="email"
                                 onChange={(e) => onchangeUserInfo(e)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
                         </div>
+
                         {userProfileInfo?.userType === USER_ROLES.PATIENT && (
                             <div>
-                                <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label
+                                    htmlFor="timezone"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
                                     Time Zone
                                 </label>
-
                                 <input
                                     id="timezone"
-                                    list='timezones'
+                                    list="timezones"
                                     value={userInfo?.timezone || ""}
-                                    name='timezone'
+                                    name="timezone"
                                     onChange={(e) => onchangeUserInfo(e)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     type="text"
-                                    placeholder='Choose your timezone'
+                                    placeholder="Choose your timezone"
                                 />
-
-                                <datalist id='timezones'>
+                                <datalist id="timezones">
                                     {Object.keys(IAIATimezones).map((timezone, index) => (
                                         <option key={index} value={timezone} />
                                     ))}
@@ -261,17 +278,26 @@ const SettingsPage = () => {
                         )}
                     </div>
                 </div>
-                {/* ACTION BUTTONS */}
-                <div className="flex justify-end space-x-3">
-                    <button onClick={resetData} type='button' className="cursor-pointer  px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3">
+                    <button
+                        onClick={resetData}
+                        type="button"
+                        className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
                         Reset
                     </button>
-                    <button type='submit' className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <button
+                        type="submit"
+                        className="cursor-pointer px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
                         {loading ? <Loader /> : "Save Changes"}
                     </button>
                 </div>
             </form>
         </div>
+
     );
 }
 

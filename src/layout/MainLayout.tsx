@@ -14,27 +14,31 @@ const MainLayout = () => {
     const [caregiver, setCaregiver] = useState(false);
 
     return (
+        // MainLayout.tsx
         <div className="flex w-full bg-gray-50 relative">
             <Sidebar setShowSideNav={setShowSideNav} showSideNav={showSideNav} setCaregiver={setCaregiver} />
-            <div className="flex flex-col flex-1 md:ml-[20%]">
-                {showSideNav && <div className='absolute z-[60] top-0 left-0 bg-black/50 w-full h-full min-h-screen md:hidden'></div>}
+            <div className="flex flex-col flex-1 md:ml-[20%] min-h-screen">
+                {showSideNav && (
+                    <div className="absolute z-[60] top-0 left-0 bg-black/60 backdrop-blur-sm w-full h-full min-h-screen md:hidden"></div>
+                )}
                 <div className="relative">
-                    <Header setShowSideNav={setShowSideNav} showSideNav={showSideNav} onNotificationClick={() => setShowNotifications(!showNotifications)} />
+                    <Header
+                        setShowSideNav={setShowSideNav}
+                        showSideNav={showSideNav}
+                    />
                     {showNotifications && (
-                        <div className="absolute z-[100] right-0 w-[100%] mx-auto top-16 md:right-4">
-                        
+                        <div className="absolute z-[100] right-0 w-full mx-auto top-20 px-2 md:right-6 md:w-[22rem]">
                             <NotificationsModal isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
                         </div>
                     )}
                 </div>
-                <main className="flex-1 p-6 mt-20">
-                    {/* MODAL CONTENT */}
+                <main className="flex-1 p-6 md:p-8 mt-20">
                     {caregiver && <AddCareGiver onClose={() => setCaregiver(false)} />}
-                    {/*MAIN CONTENT*/}
                     <Outlet />
                 </main>
             </div>
         </div>
+
     );
 }
 

@@ -183,35 +183,70 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
     }
 
     return (
-        <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="border-b border-gray-200 p-6">
-                <h2 className="text-2xl font-semibold text-gray-800">Add Medication</h2>
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+            {/* Header */}
+            <div className="border-b border-gray-200 p-6 bg-gray-50">
+                <h2 className="text-2xl font-bold text-gray-900">Add Medication</h2>
                 <p className="text-gray-600 mt-1">
                     Fill out the details to add a new medication to your schedule.
                 </p>
             </div>
-            {errorMessage && <ErrorContainer errorMessage={errorMessage} setErrorMessage={setErrorMessage} />}
-            <form onSubmit={submitMedication} method='post' className="p-6">
-                <div className="space-y-6">
+
+            {errorMessage && (
+                <ErrorContainer
+                    errorMessage={errorMessage}
+                    setErrorMessage={setErrorMessage}
+                />
+            )}
+
+            {/* Form */}
+            <form onSubmit={submitMedication} method="post" className="p-6">
+                <div className="space-y-8">
                     {/* Medication Information */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-gray-800">
+                        <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
                             Medication Information
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Name */}
                             <div>
-                                <label htmlFor="medication-name" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label
+                                    htmlFor="medication-name"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
                                     Medication Name*
                                 </label>
-                                <input onChange={(e) => setMedicationName(e.target.value)} type="text" id="medication-name" placeholder="e.g., Lisinopril" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <input
+                                    onChange={(e) => setMedicationName(e.target.value)}
+                                    type="text"
+                                    id="medication-name"
+                                    placeholder="e.g., Lisinopril"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    required
+                                />
                             </div>
+
+                            {/* Strength */}
                             <div>
-                                <label htmlFor="strength" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label
+                                    htmlFor="strength"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
                                     Strength*
                                 </label>
                                 <div className="flex">
-                                    <input onChange={(e) => setMedicationStrength(e.target.value)} type="text" id="strength" placeholder="e.g., 10" className="w-2/3 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-                                    <select onChange={(e) => setMedicationStrengthUnit(e.target.value)} className="cursor-pointer w-1/3 border-l-0 border border-gray-300 rounded-r-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input
+                                        onChange={(e) => setMedicationStrength(e.target.value)}
+                                        type="text"
+                                        id="strength"
+                                        placeholder="e.g., 10"
+                                        className="w-2/3 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required
+                                    />
+                                    <select
+                                        onChange={(e) => setMedicationStrengthUnit(e.target.value)}
+                                        className="cursor-pointer w-1/3 border-l-0 border border-gray-300 rounded-r-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
                                         <option value="mg">mg</option>
                                         <option value="mcg">mcg</option>
                                         <option value="g">g</option>
@@ -221,104 +256,203 @@ const AddMedication = ({ setNewMedication }: { setNewMedication: React.Dispatch<
                                 </div>
                             </div>
                         </div>
+
+                        {/* Instructions */}
                         <div>
-                            <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label
+                                htmlFor="instructions"
+                                className="block text-sm font-medium text-gray-700 mb-1"
+                            >
                                 Instructions
                             </label>
-                            <input onChange={(e) => setMedicationInstruction(e.target.value)} type="text" id="instructions" placeholder="e.g., Take with food" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input
+                                onChange={(e) => setMedicationInstruction(e.target.value)}
+                                type="text"
+                                id="instructions"
+                                placeholder="e.g., Take with food"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
                         </div>
                     </div>
+
                     {/* Schedule */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-gray-800">Schedule</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                            Schedule
+                        </h3>
+
+                        {/* Frequency */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Frequency*
                             </label>
                             <div className="relative">
-                                <button type="button" className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white" onClick={() => setShowFrequencyOptions(!showFrequencyOptions)}>
+                                <button
+                                    type="button"
+                                    className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onClick={() => setShowFrequencyOptions(!showFrequencyOptions)}
+                                >
                                     <span className="capitalize">{frequency}</span>
                                     <ChevronDownIcon size={16} />
                                 </button>
-                                {showFrequencyOptions && <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
-                                    {['daily', 'custom'].map(option => <button key={option} type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100 capitalize" onClick={() => {
-                                        setFrequency(option);
-                                        setShowFrequencyOptions(false);
-                                    }}>
-                                        {option}
-                                    </button>)}
-                                </div>}
-                            </div>
-                        </div>
-                        {frequency === 'custom' && <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Days of Week
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day =>
-                                    <button key={day} type="button" className={`cursor-pointer px-3 py-1 rounded-full text-sm ${days[day as keyof typeof days] ? 'bg-blue-100 text-blue-700 border border-blue-300' : 'bg-gray-100 text-gray-500 border border-gray-200'}`} onClick={() => handleDayToggle(day)}>
-                                        {day.charAt(0).toUpperCase() + day.slice(1, 3)}
-                                    </button>
+                                {showFrequencyOptions && (
+                                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                                        {['daily', 'custom'].map((option) => (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                className="block w-full text-left px-4 py-2 hover:bg-gray-100 capitalize"
+                                                onClick={() => {
+                                                    setFrequency(option);
+                                                    setShowFrequencyOptions(false);
+                                                }}
+                                            >
+                                                {option}
+                                            </button>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
-                        </div>}
+                        </div>
+
+                        {/* Days (Custom Frequency) */}
+                        {frequency === 'custom' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Days of Week
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {[
+                                        'monday',
+                                        'tuesday',
+                                        'wednesday',
+                                        'thursday',
+                                        'friday',
+                                        'saturday',
+                                        'sunday',
+                                    ].map((day) => (
+                                        <button
+                                            key={day}
+                                            type="button"
+                                            className={`px-3 py-1 rounded-full text-sm transition ${days[day as keyof typeof days]
+                                                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                                                    : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
+                                                }`}
+                                            onClick={() => handleDayToggle(day)}
+                                        >
+                                            {day.charAt(0).toUpperCase() + day.slice(1, 3)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Times */}
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <label className="block text-sm font-medium text-gray-700">
                                     Times* (24-hour format)
                                 </label>
-                                <button type="button" className="flex items-center text-sm text-blue-600 cursor-pointer" onClick={addTime}>
+                                <button
+                                    type="button"
+                                    className="flex items-center text-sm text-blue-600 hover:text-blue-800 transition"
+                                    onClick={addTime}
+                                >
                                     <PlusIcon size={16} className="mr-1" />
                                     Add Time
                                 </button>
                             </div>
                             <div className="space-y-3">
-                                {times.map((timeObj, index) => <div key={index} className="flex items-center">
-                                    <div className="mr-2">
+                                {times.map((timeObj, index) => (
+                                    <div key={index} className="flex items-center gap-2">
                                         <AlarmClockIcon size={16} className="text-gray-400" />
+                                        <input
+                                            type="time"
+                                            value={timeObj.time}
+                                            onChange={(e) => updateTime(index, 'time', e.target.value)}
+                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={timeObj.period}
+                                            onChange={(e) => updateTime(index, 'period', e.target.value)}
+                                            className="px-3 py-2 w-[50px] bg-gray-50 text-center rounded-lg border border-gray-200 text-gray-500"
+                                            disabled
+                                        />
+                                        {times.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeTime(index)}
+                                                className="p-1 text-gray-400 hover:text-red-600 transition"
+                                            >
+                                                <XIcon size={16} />
+                                            </button>
+                                        )}
                                     </div>
-                                    <input type="time" value={timeObj.time} onChange={e => updateTime(index, 'time', e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                    <input type="text" value={timeObj.period} onChange={e => updateTime(index, 'period', e.target.value)} className="ml-2 px-3 py-2 w-[50px]" disabled />
-                                    {times.length > 1 && <button type="button" onClick={() => removeTime(index)} className=" p-1 text-gray-400 hover:text-gray-600 curpo">
-                                        <XIcon className='cursor-pointer' size={16} />
-                                    </button>}
-                                </div>)}
+                                ))}
                             </div>
                         </div>
+
+                        {/* Start Date */}
                         <div>
-                            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label
+                                htmlFor="start-date"
+                                className="block text-sm font-medium text-gray-700 mb-1"
+                            >
                                 Start Date*
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <CalendarIcon size={16} className="text-gray-400" />
                                 </div>
-                                <input onChange={(e) => setStartDate(e.target.value)} type="date" id="start-date" className="cursor-pointer w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                <input
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    type="date"
+                                    id="start-date"
+                                    className="cursor-pointer w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                />
                             </div>
                         </div>
                     </div>
+
                     {/* Reminders */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-gray-800">Reminders</h3>
-                        <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex">
-                            <InfoIcon size={20} className="text-blue-500 mr-3 flex-shrink-0 mt-0.5" />
+                        <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                            Reminders
+                        </h3>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex">
+                            <InfoIcon
+                                size={20}
+                                className="text-blue-500 mr-3 flex-shrink-0 mt-0.5"
+                            />
                             <p className="text-sm text-blue-700">
-                                Reminders will be sent according to your notification
-                                preferences. You can adjust these in Settings.
+                                Reminders will be sent according to your notification preferences.
+                                You can adjust these in Settings.
                             </p>
                         </div>
                     </div>
                 </div>
-                <div className="mt-8 flex justify-end space-x-3">
-                    <button onClick={() => setNewMedication(false)} type="button" className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+
+                {/* Actions */}
+                <div className="mt-10 flex justify-end gap-3">
+                    <button
+                        onClick={() => setNewMedication(false)}
+                        type="button"
+                        className="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition"
+                    >
                         Cancel
                     </button>
-                    <button type="submit" className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        {loading ? <Loader /> : "Add Medication"}
+                    <button
+                        type="submit"
+                        className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                    >
+                        {loading ? <Loader /> : 'Add Medication'}
                     </button>
                 </div>
             </form>
         </div>
+
     );
 }
 

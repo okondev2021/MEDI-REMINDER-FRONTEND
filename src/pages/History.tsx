@@ -2,13 +2,14 @@ import { useState } from 'react';
 import AdherenceStats from '../components/history/AdherenceStats';
 import MedicationHistoryList  from '../components/history/MedicationHistoryList';
 import { SkeletonLoader } from '../components/common/SkeletonLoader';
+import { useAuthContext } from '@/context/AuthContextProvider';
 
 
 const History = () => {
 
-    // const [isLoading, setIsLoading] = useState(false);
-
     const isLoading = false;
+
+    const { currentUser } = useAuthContext();
 
     const [hasMedicationHistory, setHasMedicationHistory] = useState(false);
 
@@ -29,16 +30,16 @@ const History = () => {
         )
     }
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-                <h2 className="text-2xl font-semibold text-gray-800">
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
                     Medication History
                 </h2>
                 <p className="text-gray-600">
                     Track your medication adherence and see your progress over time.
                 </p>
             </div>
-            {hasMedicationHistory && <AdherenceStats />}
+            {hasMedicationHistory && <AdherenceStats userId={currentUser?.uid || ""} />}
             <MedicationHistoryList setHasMedicationHistory={setHasMedicationHistory} />
         </div>
     )

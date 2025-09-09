@@ -1,4 +1,4 @@
-import { HelpCircleIcon, BookOpenIcon, PhoneIcon, MessageCircleIcon, MailIcon, SearchIcon } from 'lucide-react';
+import { HelpCircleIcon } from 'lucide-react';
 import NotificationSoundGuide from '@/components/NotificationSoundGuide';
 
 const HelpPage = () => {
@@ -24,10 +24,10 @@ const HelpPage = () => {
 
     return (
         <>
-            <div className="max-w-4xl mx-auto">
+            <div className="mx-auto">
                 <div className="flex items-center mb-6">
                     <HelpCircleIcon size={24} className="text-blue-600 mr-2" />
-                    <h2 className="text-2xl font-semibold text-gray-800">Help Center</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Help Center</h2>
                 </div>
                 {/* FAQs */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">

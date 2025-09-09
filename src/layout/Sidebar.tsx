@@ -76,28 +76,34 @@ const Sidebar = ({ showSideNav, setShowSideNav, setCaregiver }: { showSideNav: b
     });
 
     return (
-        <div ref={sideNavRef} className={` overflow-x-hidden h-screen overflow-hidden fixed z-[80] bg-white  border-r border-gray-200 flex flex-col md:w-[20%] text-nowrap ${showSideNav ? " w-[70%]" : "w-0"}`}>
-            <div className="p-4 border-b border-gray-200 text-nowrap">
-                <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center mr-2">
+        // Sidebar.tsx
+        <div
+            ref={sideNavRef}
+            className={`
+                fixed z-[80] overflow-hidden h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out md:w-[20%] ${showSideNav ? "w-[70%]" : "w-0"
+                }`}
+        >
+            <div className=" h-16 md:h-20 flex items-center justify-center border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center">
                         <PillIcon size={20} color="white" />
                     </div>
-                    <span className="text-xl font-bold text-blue-500 text-nowrap">MediRemind</span>
+                    <span className="text-xl font-bold text-blue-600">MediRemind</span>
                 </div>
             </div>
-            <nav className="pt-4 text-nowrap">
-                <ul>
-                    {filteredNavItems.map(item => (
+            <nav className="flex-1 py-4 overflow-y-auto">
+                <ul className="space-y-1">
+                    {filteredNavItems.map(item =>
                         item.href ? (
                             <NavLink onClick={() => setShowSideNav(false)} to={item.href} key={item.id}>
                                 {({ isActive }) => (
                                     <button
-                                        className={`text-nowrap flex items-center w-full px-4 py-3 text-left cursor-pointer ${isActive
-                                                ? 'text-blue-600 bg-blue-50 border-l-4 border-blue-500'
-                                                : 'text-gray-600 hover:bg-gray-50'
+                                        className={`flex cursor-pointer items-center w-full px-5 py-3 text-sm font-medium rounded-l-md transition-colors ${isActive
+                                                ? "text-blue-600 bg-blue-50 border-l-4 border-blue-500"
+                                                : "text-gray-600 hover:bg-gray-50"
                                             }`}
                                     >
-                                        <span className="mr-3 text-nowrap">{item.icon}</span>
+                                        <span className="mr-3">{item.icon}</span>
                                         <span>{item.label}</span>
                                     </button>
                                 )}
@@ -105,28 +111,30 @@ const Sidebar = ({ showSideNav, setShowSideNav, setCaregiver }: { showSideNav: b
                         ) : (
                             <button
                                 key={item.id}
-                                className="text-nowrap flex items-center w-full px-4 py-3 text-left cursor-pointer text-gray-600 hover:bg-gray-50"
                                 onClick={() => setCaregiver(true)}
+                                    className="flex cursor-pointer items-center w-full px-5 py-3 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50"
                             >
-                                <span className="mr-3 text-nowrap">{item.icon}</span>
-                                <span className='inline-flex items-center gap-2'>
+                                <span className="mr-3">{item.icon}</span>
+                                <span className="flex items-center gap-2">
                                     {item.label}
-                                    {userProfileInfo?.caregivers && (
-                                        <CheckCircle className='h-6 w-6 text-green-600 ' />
-                                    )}  
+                                    {userProfileInfo?.caregivers && <CheckCircle className="h-5 w-5 text-green-600" />}
                                 </span>
                             </button>
                         )
-                    ))}
-                </ul> 
+                    )}
+                </ul>
             </nav>
-            <div className="relative flex-1 overflow-hidden">
-                <button onClick={() => signOut(auth)} className={`border-t overflow-hidden border-gray-200 text-nowrap fixed bottom-0 cursor-pointer md:w-[20%] flex items-center text-gray-600 hover:bg-gray-50 p-4 ${showSideNav ? "w-[70%]" : "w-0 px-0"}`}>
-                    <LogOutIcon size={20} className="mr-3" />
-                    <p>Log out</p>
+            <div className="border-t border-gray-200 p-4">
+                <button
+                    onClick={() => signOut(auth)}
+                    className="flex items-center cursor-pointer gap-3 w-full text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-3 py-2 rounded-md"
+                >
+                    <LogOutIcon size={20} />
+                    <span>Log out</span>
                 </button>
             </div>
         </div>
+
     );
 }
 

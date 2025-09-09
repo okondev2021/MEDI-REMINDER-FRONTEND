@@ -1,146 +1,204 @@
 import { useState, useEffect, useMemo } from 'react';
-import { PlusIcon, PillIcon, ClockIcon, CalendarIcon } from 'lucide-react';
+import { PlusIcon, PillIcon, ClockIcon, CalendarIcon, Trash2Icon } from 'lucide-react';
 import AddMedication from '../components/AddMedication';
 import { useAuthContext } from '../context/AuthContextProvider';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { MedicationProps } from '../lib/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { Trash2Icon } from 'lucide-react';
-import { deleteDoc, doc } from 'firebase/firestore';
 import { appDb } from '../lib/firebase';
 import { toast } from 'react-toastify';
 import { FirebaseError } from 'firebase/app';
 
 const Medications = () => {
-
     const { currentUser } = useAuthContext();
 
-    const medicationCollectionRef = useMemo(() => currentUser?.uid && collection(appDb, "userProfile", currentUser?.uid, "medications"), [appDb]);
-    
-    const [newMedication, setNewMedication] = useState(false);
+    const medicationCollectionRef = useMemo(
+        () =>
+            currentUser?.uid &&
+            collection(appDb, 'userProfile', currentUser?.uid, 'medications'),
+        [appDb, currentUser?.uid]
+    );
 
-    const [medications, setMedications] = useState <MedicationProps[]>();
+    const [isLoading, setIsLaoding] = useState(false);
+    const [newMedication, setNewMedication] = useState(false);
+    const [medications, setMedications] = useState<MedicationProps[]>();
 
     const getMedications = async () => {
         if (medicationCollectionRef) {
             const medicationResponse = await getDocs(medicationCollectionRef);
             const medicationList = medicationResponse.docs.map((medication) => ({
                 ...(medication.data() as MedicationProps),
-                id: medication.id
+                id: medication.id,
             }));
 
             setMedications(medicationList);
-        }
-        else {
+        } else {
             setMedications([]);
         }
-
-    }
+    };
 
     const deleteMedication = async (id: string) => {
-        if (!currentUser?.uid) return;
-        try {
+        setIsLaoding(true);
 
-            // Get doses under this medication
-            const dosesRef = collection(appDb, "userProfile", currentUser.uid, "medications", id, "doses");
+        if (!currentUser?.uid) return;
+
+        try {
+            const dosesRef = collection(
+                appDb,
+                'userProfile',
+                currentUser.uid,
+                'medications',
+                id,
+                'doses'
+            );
             const snapshot = await getDocs(dosesRef);
 
-            // Delete each dose doc
             const batchDeletes = snapshot.docs.map((d) => deleteDoc(d.ref));
             await Promise.all(batchDeletes);
 
-            // Delete the medication doc itself
-            const medicationDoc = doc(appDb, "userProfile", currentUser.uid, "medications", id);
+            const medicationDoc = doc(
+                appDb,
+                'userProfile',
+                currentUser.uid,
+                'medications',
+                id
+            );
             await deleteDoc(medicationDoc);
-            
-            setMedications((prevMedications) => prevMedications?.filter((medication) => medication.id !== id));
 
-            toast.success("Medication deleted successfully");
-        }
-        catch (error) {
-            const message = error instanceof FirebaseError ? error.message : "An unexpected error occurred, try again";
+            setMedications((prevMedications) =>
+                prevMedications?.filter((medication) => medication.id !== id)
+            );
+
+            toast.success('Medication deleted successfully');
+        } catch (error) {
+            const message =
+                error instanceof FirebaseError
+                    ? error.message
+                    : 'An unexpected error occurred, try again';
             getMedications();
-            toast.error(message)
+            toast.error(message);
+        } finally {
+            setIsLaoding(false);
         }
-    }
+    };
 
     useEffect(() => {
-        getMedications()
-    }, [newMedication])
+        getMedications();
+    }, [newMedication]);
 
-    return (
-        newMedication ?
-            <AddMedication setNewMedication={setNewMedication} />
-            :
-            <div className="max-w-5xl mx-auto">
-                <div className="flex flex-col gap-y-2 justify-between mb-6 md:flex-row md:items-center">
-                    <h2 className="text-2xl font-semibold text-gray-800">My Medications</h2>
-                    <button onClick={ () => setNewMedication(true)} className="cursor-pointer self-start inline-flex w-auto items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                        <PlusIcon size={20} className="mr-2" />
-                        Add New Medication
-                    </button>
-                </div>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="grid grid-cols-1 gap-4 p-4">
-                        {!medications && <LoadingSpinner label='Loading Your Medications' size='lg' />}
-                        {medications?.length === 0 && (
-                            <div className="flex flex-col items-center justify-center p-4 text-gray-500">
-                                <PillIcon size={40} className="mb-2" />
-                                <p className="text-lg font-medium">No medications found</p>
-                                <p className="text-sm">Add your medications to get started</p>
-                            </div>
-                        )}
-                        {medications?.map((medication, index) => (
-                            <div key={index} className={`p-4 rounded-lg border cursor-pointer ${medication.status ? 'border-gray-200 bg-white' : 'border-gray-200 bg-gray-50'}`}>
-                                <div className="flex items-start justify-between">
-                                    <div className="flex items-start space-x-3">
-                                        <div className="p-2 bg-blue-50 rounded-lg">
-                                            <PillIcon size={24} className="text-blue-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-medium text-gray-900">
-                                                {medication.medicationInformation.name}
-                                                <span className="ml-2 text-sm text-gray-500">
-                                                    {medication.medicationInformation.medicationStrength}
-                                                </span>
-                                            </h3>
-                                            <div className="mt-1 flex flex-wrap gap-4 text-sm text-gray-500">
-                                                <div className="flex items-center">
-                                                    <ClockIcon size={16} className="mr-1" />
-                                                    {medication.schedule.type}
-                                                </div>
-                                
-                                                {medication.schedule.timeSlots.map((time, index) => (
-                                                    <div key={index} className="flex items-center">
-                                                        <CalendarIcon size={16} className="mr-1" />
-                                                        {time}
-                                                    </div> 
-                                                ))}
-                                            </div>
-                                            <button onClick={() => deleteMedication(medication.id)} className=' mt-3 text-red-600 cursor-pointer'>
-                                                <Trash2Icon size={20} />
-                                            </button>
-                                        </div>
+    return newMedication ? (
+        <AddMedication setNewMedication={setNewMedication} />
+    ) : (
+        <div className="max-w-6xl mx-auto">
+            {/* Header */}
+            <div className="flex flex-col gap-y-3 justify-between mb-6 md:flex-row md:items-center">
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+                    My Medications
+                </h2>
+                <button
+                    onClick={() => setNewMedication(true)}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 transition"
+                >
+                    <PlusIcon size={20} className="mr-2" />
+                    Add New Medication
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4">
+                {/* Loader */}
+                {(!medications || isLoading) && (
+                    <LoadingSpinner
+                        label={`${isLoading ? 'Deleting Medication' : 'Loading Your Medications'
+                            }`}
+                        size="lg"
+                    />
+                )}
+
+                {/* Empty state */}
+                {medications?.length === 0 && !isLoading && (
+                    <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                        <PillIcon size={50} className="mb-3 text-blue-400" />
+                        <p className="text-lg font-medium">No medications found</p>
+                        <p className="text-sm mb-4">
+                            Add your medications to get started
+                        </p>
+                        <button
+                            onClick={() => setNewMedication(true)}
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+                        >
+                            <PlusIcon size={18} className="mr-2" />
+                            Add Medication
+                        </button>
+                    </div>
+                )}
+
+                {/* Medications grid */}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {!isLoading &&
+                        medications?.map((medication, index) => (
+                            <div
+                                key={index}
+                                className={`relative flex flex-col p-5 rounded-xl border bg-white shadow-sm hover:shadow-md transition ${medication.status ? '' : 'opacity-80'
+                                    }`}
+                            >
+                                {/* Status badge */}
+                                <span
+                                    className={`absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-xs font-medium ${medication.status
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-gray-100 text-gray-700'
+                                        }`}
+                                >
+                                    {medication.status ? 'Active' : 'Paused'}
+                                </span>
+
+                                <div className="flex items-start space-x-4">
+                                    {/* Icon */}
+                                    <div className="p-3 bg-blue-50 rounded-xl">
+                                        <PillIcon size={28} className="text-blue-600" />
                                     </div>
-                                    <div className="flex items-center">
-                                        {medication.status ?
-                                            <span className="px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                                Active
+
+                                    {/* Info */}
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-semibold text-gray-900">
+                                            {medication.medicationInformation.name}
+                                            <span className="ml-2 text-sm text-gray-500 font-normal">
+                                                {medication.medicationInformation.medicationStrength}
                                             </span>
-                                            :
-                                            <span className="px-2.5 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                                Paused
-                                            </span>
-                                        }
+                                        </h3>
+
+                                        <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-600">
+                                            <div className="flex items-center">
+                                                <ClockIcon size={16} className="mr-1 text-gray-400" />
+                                                {medication.schedule.type}
+                                            </div>
+                                            {medication.schedule.timeSlots.map((time, i) => (
+                                                <div key={i} className="flex items-center">
+                                                    <CalendarIcon
+                                                        size={16}
+                                                        className="mr-1 text-gray-400"
+                                                    />
+                                                    {time}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
+
+                                {/* Delete button */}
+                                <button
+                                    onClick={() => deleteMedication(medication.id)}
+                                    className="absolute bottom-3 right-3 text-gray-400 hover:text-red-600 transition"
+                                    title="Delete"
+                                >
+                                    <Trash2Icon size={20} />
+                                </button>
                             </div>
                         ))}
-                    </div>
                 </div>
             </div>
+        </div>
     );
-}
-
+};
 
 export default Medications;

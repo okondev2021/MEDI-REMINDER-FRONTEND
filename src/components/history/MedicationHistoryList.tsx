@@ -14,6 +14,7 @@ import { DosesScheduleProps, GroupedDosesProps } from '@/lib/types';
 import { groupMedicationHistoryByDate } from '@/lib/mediRemindUtils';
 import { DateTime } from 'luxon';
 import { fetchPatientTimezoneFromCaregiver } from '@/lib/mediRemindUtils';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 
 
@@ -22,6 +23,8 @@ const MedicationHistoryList = ({ caregiver, setHasMedicationHistory }: { caregiv
     const { currentUser, userProfileInfo } = useAuthContext();
 
     const [timeZone, setTimeZone] = useState("")
+
+    const [isLoading, setIsLoading] = useState(false);
 
     const now = DateTime.local().setZone(timeZone).startOf('day');
 
@@ -60,23 +63,28 @@ const MedicationHistoryList = ({ caregiver, setHasMedicationHistory }: { caregiv
     }
 
     useEffect(() => {
-        if (!userProfileInfo?.timezone) {
-            const timeZoneFunc = async () => {
-                if (userProfileInfo) {
-                    const patientTimezone = await fetchPatientTimezoneFromCaregiver(userProfileInfo);
-                    setTimeZone(patientTimezone ?? "");
+        const getMedicationHistory = async () => {
+            setIsLoading(true);
+            try {
+                let tz = userProfileInfo?.timezone;
+                if (!tz && userProfileInfo) {
+                    tz = await fetchPatientTimezoneFromCaregiver(userProfileInfo) || "";
                 }
+                setTimeZone(tz ?? "");
+
+                // Wait for full medication history after timezone is set
+                if (tz || tz === "") {
+                    await getFullMedicationHistory();
+                }
+            } catch (err) {
+                console.error("Error fetching medication history:", err);
+            } finally {
+                setIsLoading(false);
             }
+        };
 
-            timeZoneFunc()
-        }
-        else {
-            setTimeZone(userProfileInfo?.timezone ?? "")
-        }
-        getFullMedicationHistory();
-
-
-    }, [timeZone])
+        getMedicationHistory();
+    }, [userProfileInfo]); // you can also remove timeZone dependency
 
     const [expandedDates, setExpandedDates] = useState<string[]>([]);
 
@@ -116,82 +124,94 @@ const MedicationHistoryList = ({ caregiver, setHasMedicationHistory }: { caregiv
             </div>
             {/*  */}
             <div className="divide-y divide-gray-200">
-                {(medicationHistory?.length ?? 0) < 1 && (
-                    <div className=' p-4'>
-                        <p className="text-base font-bold text-gray-600 text-center">{caregiver ? "No medication logs found yet. Once they start tracking their meds, you'll see them here" : "History is empty, add a medication to get started"}</p>
-                    </div>
-                )}
-                {medicationHistory?.map(day => (
-                    <div key={day.time} className="border-b border-gray-100 last:border-0">
-                        {/*  */}
-                        <button
-                            className="w-full cursor-pointer flex justify-between items-center p-4 hover:bg-gray-50"
-                            onClick={() => toggleDate(day.time)}
-                        >
-                            <div className="flex items-center">
-                                <div className="mr-3">
-                                    {day.time === now.toFormat('yyyy-MM-dd') ? 'Today' : day.time === yesterday ? 'Yesterday' : day.time}
-                                </div>
-                                <div className="flex space-x-1">
-                                    {day.medications.map((med, idx) => (
-                                        <span
-                                            key={idx}
-                                            className={`h-2 w-2 rounded-full ${med.taken ? 'bg-green-500' : med.missed ? 'bg-red-500' : 'bg-yellow-500'}`}>
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="flex items-center">
-                                <span className="text-sm text-gray-500 mr-2">
-                                    {day.medications.filter(m => m.taken).length}/
-                                    {day.medications.length} taken
-                                </span>
-                                {/*  */}
-                                {expandedDates.includes(day.time) ?
-                                    <ChevronUpIcon className="h-5 w-5 text-gray-400" />
-                                    :
-                                    <ChevronDownIcon className="h-5 w-5 text-gray-400" />
-                                }
-                            </div>
-                        </button>
-                        {/*  */}
-                        {expandedDates.includes(day.time) && (
-                            <div className="px-4 pb-4">
-                                {day.medications.map((med, idx) => (
-                                    <div key={idx} className="flex items-start py-3 border-b border-gray-100 last:border-0">
-                                        <div className="mr-3 mt-1">{med.taken ? statusIcons["taken"] : med.missed ? statusIcons["missed"] : statusIcons["pending"]}</div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center">
-                                                <h4 className="font-medium text-gray-800">
-                                                    {med.medicationName}
-                                                </h4>
-                                                <span className="ml-2 text-sm text-gray-500">
-                                                    {med.medicationStrength}
-                                                </span>
-                                                <span
-                                                    className={`ml-2 text-xs px-2 py-0.5 rounded-full 
-                                                        ${med.taken ? "bg-green-100 text-green-800" : med.missed ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`
-                                                    }
-                                                >
-                                                    {med.taken ? "taken" : med.missed ? "missed" : "pending"}
-                                                </span>
+                {isLoading ?
+                    (
+                        <LoadingSpinner label='Getting user medication history' size='lg' />
+                    )
+                    :
+                    (
+                        <>
+                            {(medicationHistory?.length ?? 0) < 1 && (
+                                    <div className=' p-4'>
+                                        <p className="text-base font-bold text-gray-600 text-center">{caregiver ? "No medication logs found yet. Once they start tracking their meds, you'll see them here" : "History is empty, add a medication to get started"}</p>
+                                    </div>
+                            )}
+            
+                            {medicationHistory?.map(day => (
+                                <div key={day.time} className="border-b border-gray-100 last:border-0">
+                                    {/*  */}
+                                    <button
+                                        className="w-full cursor-pointer flex justify-between items-center p-4 hover:bg-gray-50"
+                                        onClick={() => toggleDate(day.time)}
+                                    >
+                                        <div className="flex items-center">
+                                            <div className="mr-3">
+                                                {day.time === now.toFormat('yyyy-MM-dd') ? 'Today' : day.time === yesterday ? 'Yesterday' : day.time}
                                             </div>
-                                            <div className="flex items-center text-sm text-gray-600">
-                                                <span>{med.time}</span>
-                                                <span className="mx-2">•</span>
-                                                <span>{med.medicationInstruction}</span>
+                                            <div className="flex space-x-1">
+                                                {day.medications.map((med, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className={`h-2 w-2 rounded-full ${med.taken ? 'bg-green-500' : med.missed ? 'bg-red-500' : 'bg-yellow-500'}`}>
+                                                    </span>
+                                                ))}
                                             </div>
                                         </div>
-                                        {/* {(med.missed && !med.taken) && (
-                                            <span className="text-xs text-red-600">Medication Missed</span>
-                                        )} */}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        {/*  */}
-                    </div>
-                ))}
+                                        <div className="flex items-center">
+                                            <span className="text-sm text-gray-500 mr-2">
+                                                {day.medications.filter(m => m.taken).length}/
+                                                {day.medications.length} taken
+                                            </span>
+                                            {/*  */}
+                                            {expandedDates.includes(day.time) ?
+                                                <ChevronUpIcon className="h-5 w-5 text-gray-400" />
+                                                :
+                                                <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                                            }
+                                        </div>
+                                    </button>
+                                    {/*  */}
+                                    {expandedDates.includes(day.time) && (
+                                        <div className="px-4 pb-4">
+                                            {day.medications.map((med, idx) => (
+                                                <div key={idx} className="flex items-start py-3 border-b border-gray-100 last:border-0">
+                                                    <div className="mr-3 mt-1">{med.taken ? statusIcons["taken"] : med.missed ? statusIcons["missed"] : statusIcons["pending"]}</div>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center">
+                                                            <h4 className="font-medium text-gray-800">
+                                                                {med.medicationName}
+                                                            </h4>
+                                                            <span className="ml-2 text-sm text-gray-500">
+                                                                {med.medicationStrength}
+                                                            </span>
+                                                            <span
+                                                                className={`ml-2 text-xs px-2 py-0.5 rounded-full 
+                                                                    ${med.taken ? "bg-green-100 text-green-800" : med.missed ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`
+                                                                }
+                                                            >
+                                                                {med.taken ? "taken" : med.missed ? "missed" : "pending"}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center text-sm text-gray-600">
+                                                            <span>{med.time}</span>
+                                                            <span className="mx-2">•</span>
+                                                            <span>{med.medicationInstruction}</span>
+                                                        </div>
+                                                    </div>
+                                                    {/* {(med.missed && !med.taken) && (
+                                                        <span className="text-xs text-red-600">Medication Missed</span>
+                                                    )} */}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {/*  */}
+                                </div>
+                            ))}
+                        </> 
+                    )
+                }
+    
             </div>
 
         </div>

@@ -1,6 +1,6 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { fetch } from "undici";
 import { defineSecret } from "firebase-functions/params";
+import * as nodemailer from "nodemailer";
 
 
 // Configurable parameters
@@ -14,21 +14,132 @@ const CONFIG = {
   timeWindowMins: [-15, -10, -5, 0, 5, 10],
 };
 
-
 // 
-type SendMissedDoseEmailParams = {
+type SendDoseEmailParams = {
   toEmail: string;
   firstName: string;
   caregiver?: string;
   medicationName: string;
   scheduledTime: string;
   forCaregiver: boolean;
+  isMissed: boolean;
+  isReminder: boolean
 };
 
-
 // 
-const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
+export const extendMedicationDoses = onSchedule(
+  {
+    schedule: "every day 01:00", // run daily at 1 AM UTC
+    timeZone: "UTC",
+  },
+  async () => {
+    const { initializeApp, getApps } = await import("firebase-admin/app");
+    const { getFirestore, Timestamp } = await import(
+      "firebase-admin/firestore"
+    );
+    const { DateTime } = await import("luxon");
+    const { generateMonthlyDoses } = await import(
+      "./utils/generateMonthlyDoses.js"
+    );
 
+    if (!getApps().length) {
+      initializeApp();
+    }
+    const db = getFirestore();
+
+    const usersSnapshot = await db.collection("userProfile").get();
+    console.log(
+      `🔍 Scanning ${usersSnapshot.size} users for expired medications`
+    );
+
+    for (const userDoc of usersSnapshot.docs) {
+      const userId = userDoc.id;
+
+      const medsSnapshot = await db
+        .collection(`userProfile/${userId}/medications`)
+        .where("status", "==", true) // only active meds
+        .get();
+
+      for (const medDoc of medsSnapshot.docs) {
+        const medId = medDoc.id;
+        const medData = medDoc.data();
+
+        const { schedule, medicationInformation } = medData;
+        if (!schedule?.selectedDays || !schedule?.timeSlots) {
+          console.log(`⏩ Skipping ${medId} — missing schedule info`);
+          continue;
+        }
+
+        const dosesRef = db.collection(
+          `userProfile/${userId}/medications/${medId}/doses`
+        );
+
+        // Get the last scheduled dose
+        const lastDoseSnap = await dosesRef
+          .orderBy("Timestamp", "desc")
+          .limit(1)
+          .get();
+
+        if (lastDoseSnap.empty) {
+          console.log(`⚠️ No doses found for ${medId} (user ${userId})`);
+          continue;
+        }
+
+        const lastDose = lastDoseSnap.docs[0].data();
+        const lastDoseTime: Date = lastDose.Timestamp.toDate();
+        const lastDoseDateTime = DateTime.fromJSDate(lastDoseTime);
+
+        // Start new schedule the day AFTER last dose
+        const newStartDate = lastDoseDateTime.plus({ days: 1 }).toISODate();
+        const now = DateTime.utc();
+
+        // Only extend if last dose has already passed
+        if (lastDoseDateTime < now) {
+          console.log(
+            `⏰ Medication ${medId} (user ${userId}) expired at ${lastDoseTime.toISOString()} — generating new doses from ${newStartDate}`
+          );
+
+          const newDoses = generateMonthlyDoses({
+            startDate: newStartDate ?? "",
+            selectedDays: schedule.selectedDays,
+            timeSlots: schedule.timeSlots,
+            medicationInfo: {
+              id: medId,
+              name: medicationInformation?.name,
+              instruction: medicationInformation?.instruction,
+              strength: medicationInformation?.strength,
+            },
+            userId,
+          });
+
+          const batch = db.batch();
+          for (const dose of newDoses) {
+            const docRef = dosesRef.doc();
+            batch.set(docRef, {
+              ...dose,
+              taken: false,
+              missed: false,
+              notificationSent: false,
+              lastNotifiedAt: null,
+              createdAt: Timestamp.fromDate(new Date()),
+            });
+          }
+          await batch.commit();
+
+          console.log(
+            `✅ Extended doses for ${medId} (user ${userId}) — added ${newDoses.length} doses`
+          );
+        } else {
+          console.log(
+            `👌 Medication ${medId} (user ${userId}) still active — last dose is ${lastDoseTime.toISOString()}`
+          );
+        }
+      }
+    }
+
+    console.log(`🎯 Done checking for expired medications`);
+  }
+);
 
 // DOSE NOTIFICATION
 export const notifyUpcomingDoses = onSchedule(
@@ -43,12 +154,14 @@ export const notifyUpcomingDoses = onSchedule(
     const { getFirestore, Timestamp } = await import("firebase-admin/firestore");
     const { getMessaging } = await import("firebase-admin/messaging");
     const { DateTime } = await import("luxon");
+    const { getAuth } = await import("firebase-admin/auth");
 
     // Initialize Firebase
     if (!getApps().length) {
       initializeApp();
     }
     const db = getFirestore();
+    const auth = getAuth();
     const messaging = getMessaging();
 
     // Original function logic below (unchanged)
@@ -125,55 +238,88 @@ export const notifyUpcomingDoses = onSchedule(
           // }
 
           try {
-            const response = await messaging.send({
-              token: fcmToken,
-              webpush: {
-                headers: {
-                  Urgency: "high",
-                },
-                notification: {
-                  title: "💊 Medication Reminder",
-                  body: `It's time to take your medication: ${medicationName}`,
-                  icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
-                  vibrate: [200, 100, 200, 100, 200, 100, 200],
-                  badge:
-                    "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
-                  requireInteraction: true,
-                  actions: [
-                    {
-                      action: "take",
-                      title: "✅ Take",
-                    },
-                    {
-                      action: "snooze",
-                      title: "⏰ Snooze",
-                    },
-                  ],
-                  tag: `Medication alarm ${medicationName}`,
-                  renotify: true,
-                },
-              },
-              data: {
-                userId,
-                medId,
-                medicationName,
-                medicationInstructions:
-                  medData?.medicationInformation?.instructions,
-                doseId: doseDoc.id,
-                time: doseDateTime.toISO() ?? "",
-                alarm: "true",
-              },
-            });
 
-            console.log(
-              `📤 Notified ${userId} about dose ${doseDoc.id} (${timeDiffMins} mins from now). Msg ID: ${response}`
-            );
+            let wasPushNotificationSent;
+            let wasEmailNotificationSent;
 
-            await doseDoc.ref.update({
-              lastNotifiedAt: Timestamp.fromDate(new Date()),
-              notificationSent: true,
-            });
-          } catch (err) {
+
+            if (userData.pushNotification === true) {
+              const response = await messaging.send({
+                token: fcmToken,
+                webpush: {
+                  headers: {
+                    Urgency: "high",
+                  },
+                  notification: {
+                    title: "💊 Medication Reminder",
+                    body: `It's time to take your medication: ${medicationName}`,
+                    icon: "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
+                    vibrate: [200, 100, 200, 100, 200, 100, 200],
+                    badge:
+                      "https://res.cloudinary.com/dcpbyncni/image/upload/v1752783406/icon512_rounded_xio6lb.png",
+                    requireInteraction: true,
+                    actions: [
+                      {
+                        action: "take",
+                        title: "✅ Take",
+                      },
+                      {
+                        action: "snooze",
+                        title: "⏰ Snooze",
+                      },
+                    ],
+                    tag: `Medication alarm ${medicationName}`,
+                    renotify: true,
+                  },
+                },
+                data: {
+                  userId,
+                  medId,
+                  medicationName,
+                  medicationInstructions:
+                    medData?.medicationInformation?.instructions,
+                  doseId: doseDoc.id,
+                  time: doseDateTime.toISO() ?? "",
+                  alarm: "true",
+                },
+              });
+
+              wasPushNotificationSent = true;
+
+              console.log(`📤 Notified ${userId} about dose ${doseDoc.id} (${timeDiffMins} mins from now). Msg ID: ${response}`);
+            }
+
+            if (userData.emailNotification === true && doseData.notificationSent !== true) {
+              const patientRecord = await auth.getUser(
+                userDoc.id || ""
+              );
+              const patientDisplayName = patientRecord.displayName;
+
+              await sendMissedDoseEmail({
+                toEmail: patientRecord.email || "",
+                firstName: patientDisplayName || "User",
+                medicationName:
+                  medDoc.data()?.medicationInformation?.name ||
+                  "Medication",
+                scheduledTime: doseDateTime.toFormat("fff"),
+                forCaregiver: true,
+                isMissed: true,
+                isReminder: false,
+              });
+
+              wasEmailNotificationSent = true;
+            }
+
+
+            if (wasPushNotificationSent || wasEmailNotificationSent) {
+              await doseDoc.ref.update({
+                lastNotifiedAt: Timestamp.fromDate(new Date()),
+                notificationSent: true,
+              });
+            }
+            
+          }
+          catch (err) {
             console.error(
               `❌ Failed to notify ${userId} dose ${doseDoc.id}`,
               err
@@ -187,7 +333,6 @@ export const notifyUpcomingDoses = onSchedule(
   }
 );
 
-
 // 
 const CaregiverMissedDoseHtml = ({
   firstName,
@@ -195,15 +340,41 @@ const CaregiverMissedDoseHtml = ({
   medicationName,
   scheduledTime,
   forCaregiver,
+  isMissed,
+  isReminder,
 }: {
   firstName: string;
   caregiver?: string;
   medicationName: string;
   scheduledTime: string;
   forCaregiver: boolean;
+  isMissed: boolean;
+  isReminder: boolean;
   }) => {
-  return forCaregiver
+  
+  const appUrl = defineSecret("DOMAIN_URL") || "#";
+  return isReminder
     ? `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2 style="color: #0275d8;">Medication Reminder</h2>
+        <p>Hi ${firstName},</p>
+        <p>This is a friendly reminder that it’s almost time to take your scheduled dose of <strong>${medicationName}</strong> at <strong>${scheduledTime}</strong>.</p>
+        <p>Please make sure to take your medication on time for the best effect.</p>
+        <p>
+          <a href="${appUrl}" 
+             style="display: inline-block; background: #0275d8; color: #fff; 
+                    padding: 10px 16px; text-decoration: none; border-radius: 6px; 
+                    margin-top: 12px;">
+            Open MediRemind App
+          </a>
+        </p>
+        <p style="margin-top: 1.2em;">Stay consistent and healthy,<br>— The MediRemind Team</p>
+        <hr style="border: none; border-top: 1px solid #ccc; margin-top: 20px;">
+        <small style="color: #888;">This is an automated reminder. Please do not reply directly to this email.</small>
+      </div>
+  `
+    : forCaregiver && isMissed
+      ? `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2>Missed Medication Alert</h2>
         <p>Hello ${caregiver},</p>
@@ -215,7 +386,7 @@ const CaregiverMissedDoseHtml = ({
       </div>
 
     `
-    : `
+      : `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2 style="color: #d9534f;">Missed Dose Alert</h2>
         <p>Hi ${firstName},</p>
@@ -230,50 +401,70 @@ const CaregiverMissedDoseHtml = ({
   `;
 }
 
-
 // 
-const sendMissedDoseEmail = async ({
+export const sendMissedDoseEmail = async ({
   toEmail,
   firstName,
   caregiver,
   medicationName,
   scheduledTime,
   forCaregiver,
-}: SendMissedDoseEmailParams) => {
+  isMissed,
+  isReminder,
+}: SendDoseEmailParams) => {
+  // Validate environment variables
+  const GMAIL_USER = process.env.GMAIL_USER;
+  const GMAIL_PASS = process.env.GMAIL_PASS;
+
+  if (!GMAIL_USER || !GMAIL_PASS) {
+    throw new Error(
+      "Gmail credentials not configured in environment variables"
+    );
+  }
+
+  // Create transporter
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: GMAIL_USER,
+      pass: GMAIL_PASS,
+    },
+  });
+
+  // Build email body
   const html = CaregiverMissedDoseHtml({
     firstName,
     caregiver,
     medicationName,
     scheduledTime,
     forCaregiver,
+    isMissed,
+    isReminder,
   });
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY.value()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "MediRemind <onboarding@resend.dev>",
+  try {
+    // Send the email
+    const info = await transporter.sendMail({
+      from: `"MediRemind" <${GMAIL_USER}>`,
       to: toEmail,
-      subject: "Missed Medication Alert",
-      html: html,
-    }),
-  });
+      subject: isReminder
+        ? "💊 Medication Reminder"
+        : "⚠️ Missed Medication Alert",
+      html,
+    });
 
-  const result = await response.json();
-
-  if (!response.ok) {
-    console.error("Send failed:", result);
-    throw new Error("Email failed to send");
-  } else {
-    console.log("Email sent successfully:");
+    console.log(`📧 Email sent to ${toEmail}: ${info.messageId}`);
+    return { success: true, id: info.messageId };
+  } catch (error) {
+    console.error(`❌ Failed to send email to ${toEmail}:`, error);
+    throw new Error(`Email sending failed: ${error}`);
+  } finally {
+    // Close transporter
+    transporter.close();
   }
-
-  return { success: true, result };
 };
-
 
 // MARK MISSED DOSES
 export const markMissedDoses = onSchedule(
@@ -379,7 +570,9 @@ export const markMissedDoses = onSchedule(
                       medDoc.data()?.medicationInformation?.name ||
                       "Medication",
                     scheduledTime: formattedTime,
-                    forCaregiver: true
+                    forCaregiver: true,
+                    isMissed: true,
+                    isReminder: false
                   });
 
                   // notify patient
@@ -392,6 +585,8 @@ export const markMissedDoses = onSchedule(
                         ?.name || "Medication",
                     scheduledTime: formattedTime,
                     forCaregiver: false,
+                    isMissed: true,
+                    isReminder: false
                   });
 
                   console.log(
@@ -444,6 +639,5 @@ export const markMissedDoses = onSchedule(
   }
 
 );
-
 
 // 
